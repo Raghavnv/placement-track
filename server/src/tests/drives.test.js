@@ -86,6 +86,20 @@ describe('GET /api/drives', () => {
     expect(res.body.pagination).toEqual({ page: 2, limit: 2, total: 3, totalPages: 2 });
   });
 
+  it('ranks drives by match score for students with sort=match', async () => {
+    await student.updateOne({ skills: ['Python', 'SQL'], preferredRoles: ['data'], preferredLocations: ['Pune'] });
+    await createDrive(admin, { companyName: 'CoreCo', role: 'Graduate Engineer Trainee', skills: ['AutoCAD'], location: 'Chennai' });
+    await createDrive(admin, { companyName: 'DataCo', role: 'Data Analyst', skills: ['Python', 'SQL'], location: 'Pune' });
+
+    const res = await request(app).get('/api/drives?sort=match').set(bearer(student));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.map((d) => d.companyName)).toEqual(['DataCo', 'CoreCo']);
+    expect(res.body.data[0].matchScore).toBeGreaterThan(res.body.data[1].matchScore);
+    expect(res.body.data[0].matchReasons).toContain('Fits your Data Analyst / Scientist goal');
+    expect(res.body.pagination.total).toBe(2);
+  });
+
   it('rejects invalid query parameters', async () => {
     const res = await request(app).get('/api/drives?limit=500&sort=random').set(bearer(student));
     expect(res.status).toBe(400);
@@ -117,6 +131,11 @@ describe('POST /api/drives', () => {
     const res = await request(app).post('/api/drives').set(bearer(admin)).send(validDrive());
     expect(res.status).toBe(201);
     expect(res.body.drive).toMatchObject({ companyName: 'Zoho', status: 'open', applicantCount: 0, createdBy: admin.id });
+  });
+
+  it('stores skill tags for matching', async () => {
+    const res = await request(app).post('/api/drives').set(bearer(admin)).send({ ...validDrive(), skills: ['C++', 'DSA'] });
+    expect(res.body.drive.skills).toEqual(['C++', 'DSA']);
   });
 
   it('applies eligibility defaults', async () => {

@@ -19,6 +19,7 @@ const driveSchema = new mongoose.Schema(
     package: { type: Number, required: true, min: 0, max: 200 }, // CTC in LPA
     location: { type: String, trim: true, maxlength: 100, default: '' },
     jobType: { type: String, enum: JOB_TYPES, required: true },
+    skills: { type: [{ type: String, trim: true, maxlength: 40 }], default: [] }, // used for match scores
     eligibility: { type: eligibilitySchema, required: true, default: () => ({}) },
     deadline: { type: Date, required: true },
     driveDate: {

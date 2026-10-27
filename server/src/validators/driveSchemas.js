@@ -21,6 +21,7 @@ const driveFields = {
   jobType: z.enum(JOB_TYPES, { errorMap: () => ({ message: `Job type must be ${JOB_TYPES.join(' or ')}` }) }),
   deadline: z.coerce.date({ required_error: 'Deadline is required', invalid_type_error: 'Deadline must be a valid date' }),
   driveDate: z.coerce.date({ invalid_type_error: 'Drive date must be a valid date' }).nullable(),
+  skills: z.array(z.string().trim().min(1).max(40)).max(15, 'Add up to 15 skills'),
 };
 
 const checkDates = (drive, ctx) => {
@@ -34,6 +35,7 @@ const createDrive = z
     ...driveFields,
     description: driveFields.description.default(''),
     location: driveFields.location.default(''),
+    skills: driveFields.skills.default([]),
     driveDate: driveFields.driveDate.optional().default(null),
     eligibility: z.object({
       minCgpa: eligibilityFields.minCgpa,
@@ -70,7 +72,7 @@ const listQuery = z.object({
   jobType: optionalQuery(z.enum(JOB_TYPES)),
   minPackage: optionalQuery(z.coerce.number().min(0)),
   eligibleOnly: optionalQuery(z.enum(['true', 'false']).transform((v) => v === 'true')),
-  sort: optionalQuery(z.enum(['deadline', '-createdAt', '-package'])).default('deadline'),
+  sort: optionalQuery(z.enum(['deadline', '-createdAt', '-package', 'match'])).default('deadline'),
   ...pagination,
 });
 
