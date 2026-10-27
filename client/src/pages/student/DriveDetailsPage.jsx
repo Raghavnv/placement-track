@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { Briefcase, MapPin, SearchX, ShieldCheck, Users } from 'lucide-react';
+import { Briefcase, MapPin, SearchX, ShieldCheck, Sparkles, Tag, Users } from 'lucide-react';
+import MatchRing from '../../components/common/MatchRing';
 import PageHeader from '../../components/common/PageHeader';
 import { CompanyAvatar } from '../../components/common/Avatar';
 import { CardSkeleton, EmptyState, ErrorState } from '../../components/common/States';
@@ -65,6 +66,33 @@ export default function DriveDetailsPage() {
                   </ul>
                 </div>
                 <EligibilityBadge drive={drive} />
+              </section>
+
+              <section className="card match-panel" aria-labelledby="match-title">
+                <MatchRing score={drive.matchScore} size={88} />
+                <div>
+                  <h2 id="match-title" className="card__title">
+                    <Sparkles size={16} aria-hidden="true" /> Why it's a {drive.matchScore >= 60 ? 'strong' : 'possible'} match
+                  </h2>
+                  {drive.matchReasons?.length ? (
+                    <ul className="reason-list">
+                      {drive.matchReasons.map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="muted">Add skills and roles to your profile to see why drives fit you.</p>
+                  )}
+                  {drive.skills?.length > 0 && (
+                    <ul className="mini-chips" aria-label="Skills the company is looking for">
+                      {drive.skills.map((s) => (
+                        <li key={s}>
+                          <Tag size={11} aria-hidden="true" /> {s}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </section>
 
               <section className="card" aria-labelledby="eligibility-title">

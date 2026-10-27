@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Briefcase, Search, X } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Briefcase, Search, SlidersHorizontal, X } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Pagination from '../../components/common/Pagination';
@@ -23,6 +23,7 @@ const PACKAGE_OPTIONS = [
   { value: '12', label: '₹12 LPA +' },
 ];
 const SORT_OPTIONS = [
+  { value: 'match', label: 'Best match' },
   { value: 'deadline', label: 'Deadline: soonest' },
   { value: '-package', label: 'Package: highest' },
   { value: '-createdAt', label: 'Newest first' },
@@ -39,7 +40,7 @@ export default function DrivesPage() {
     type: params.get('type') || '',
     minPackage: params.get('min') || '',
     eligible: params.get('eligible') === '1',
-    sort: params.get('sort') || 'deadline',
+    sort: params.get('sort') || 'match',
     page: Number(params.get('page')) || 1,
   };
 
@@ -86,7 +87,20 @@ export default function DrivesPage() {
 
   return (
     <div className="page">
-      <PageHeader title="Placement drives" description="Open drives you can still apply to, soonest deadline first." />
+      <PageHeader
+        eyebrow="Live drives"
+        title={
+          <>
+            Find your <mark>next offer.</mark>
+          </>
+        }
+        description="Ranked by how well each drive fits your skills, interests and goals."
+        actions={
+          <Button as={Link} to="/onboarding?edit=1" variant="secondary" icon={SlidersHorizontal}>
+            Tune my matches
+          </Button>
+        }
+      />
 
       <div className="toolbar card">
         <div className="search-input">
@@ -122,7 +136,7 @@ export default function DrivesPage() {
               </option>
             ))}
           </select>
-          <select className="input select select--sm" aria-label="Sort by" value={filters.sort} onChange={(e) => setFilter('sort', e.target.value === 'deadline' ? '' : e.target.value)}>
+          <select className="input select select--sm" aria-label="Sort by" value={filters.sort} onChange={(e) => setFilter('sort', e.target.value === 'match' ? '' : e.target.value)}>
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}

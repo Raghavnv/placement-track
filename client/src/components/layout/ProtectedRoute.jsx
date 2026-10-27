@@ -12,13 +12,15 @@ export default function ProtectedRoute({ role }) {
     return <Navigate to={role === 'admin' ? '/admin/login' : '/login'} replace state={{ from: location }} />;
   }
   if (role && user.role !== role) return <Navigate to={homePathFor(user)} replace />;
+  // New students answer the onboarding questions before anything else.
+  if (user.needsOnboarding && location.pathname !== '/onboarding') return <Navigate to="/onboarding" replace />;
   return <Outlet />;
 }
 
 export function PublicOnlyRoute() {
   const { user, loading } = useAuth();
   if (loading) return <FullPageSpinner />;
-  if (user) return <Navigate to={homePathFor(user)} replace />;
+  if (user) return <Navigate to={user.needsOnboarding ? '/onboarding' : homePathFor(user)} replace />;
   return <Outlet />;
 }
 

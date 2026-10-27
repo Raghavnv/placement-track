@@ -1,75 +1,87 @@
 /*
- * PlacementTrack design tokens - the single source of truth for colour, type and spacing.
- * Never hard-code hex values in components. Rationale: docs/ui-design.md
+ * PlacementTrack design tokens - "on track": warm paper, ink, a lime signal and a coral alarm.
+ * Never hard-code colours, fonts or spacing in components. Rationale: docs/ui-design.md
  */
 :root {
   color-scheme: light;
 
-  /* Brand */
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-primary-soft: #eef2ff;
-  --color-primary-border: #c7d2fe;
-  --color-on-primary: #ffffff;
-  --color-accent: #7c3aed;
-  --gradient-brand: linear-gradient(135deg, #4338ca 0%, #6d28d9 55%, #9333ea 100%);
+  /* Signature */
+  --color-ink: #16141d;
+  --color-on-ink: #fffdf8;
+  --color-lime: #cdf25c;
+  --color-lime-strong: #a9d321;
+  --color-lime-soft: #eef8c9;
+  --color-coral: #ff5a36;
+  --color-coral-soft: #ffe2d9;
+  --sidebar-bg: #16141d;
+  --sidebar-text: #c9c3d3;
+  --hero-bg: #16141d;
 
-  /* Neutrals */
-  --color-bg: #f6f7fb;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f1f5f9;
+  /* Brand (links, focus, active states) */
+  --color-primary: #4b32e6;
+  --color-primary-hover: #3a22c9;
+  --color-primary-soft: #e9e4ff;
+  --color-primary-border: #c4b8ff;
+  --color-on-primary: #ffffff;
+  --color-accent: #ff5a36;
+
+  /* Neutrals: warm paper */
+  --color-bg: #f3efe6;
+  --color-surface: #fffdf8;
+  --color-surface-muted: #ede7db;
   --color-surface-raised: #ffffff;
-  --color-border: #e4e7ef;
-  --color-border-strong: #cbd5e1;
-  --color-text: #0f172a;
-  --color-text-muted: #475569;
-  --color-text-subtle: #64748b;
-  --color-overlay: rgb(15 23 42 / 0.45);
+  --color-border: #e0d8c8;
+  --color-border-strong: #c3b9a6;
+  --color-text: #16141d;
+  --color-text-muted: #4a4553;
+  --color-text-subtle: #6b6575;
+  --color-overlay: rgb(22 20 29 / 0.5);
 
   /* Feedback */
-  --color-success: #15803d;
-  --color-success-soft: #dcfce7;
-  --color-warning: #b45309;
-  --color-warning-soft: #fef3c7;
-  --color-danger: #b91c1c;
-  --color-danger-soft: #fee2e2;
-  --color-danger-hover: #991b1b;
-  --color-info: #1d4ed8;
-  --color-info-soft: #dbeafe;
+  --color-success: #1b7f3b;
+  --color-success-soft: #ddf3d0;
+  --color-warning: #8f5400;
+  --color-warning-soft: #ffedc2;
+  --color-danger: #c2391b;
+  --color-danger-soft: #ffe1d8;
+  --color-danger-hover: #9f2c12;
+  --color-info: #2b54d9;
+  --color-info-soft: #dee6ff;
 
-  /* Application stages (text colour on soft background, all WCAG AA) */
-  --stage-applied: #1d4ed8;
-  --stage-applied-soft: #dbeafe;
-  --stage-applied-solid: #3b82f6;
-  --stage-aptitude: #b45309;
-  --stage-aptitude-soft: #fef3c7;
-  --stage-aptitude-solid: #f59e0b;
-  --stage-interview: #6d28d9;
-  --stage-interview-soft: #ede9fe;
-  --stage-interview-solid: #8b5cf6;
-  --stage-offer: #15803d;
-  --stage-offer-soft: #dcfce7;
-  --stage-offer-solid: #22c55e;
-  --stage-rejected: #b91c1c;
-  --stage-rejected-soft: #fee2e2;
-  --stage-rejected-solid: #ef4444;
+  /* Application stages (text on soft background: WCAG AA; solid for lines and dots) */
+  --stage-applied: #2b54d9;
+  --stage-applied-soft: #dee6ff;
+  --stage-applied-solid: #4c74f0;
+  --stage-aptitude: #8f5400;
+  --stage-aptitude-soft: #ffedc2;
+  --stage-aptitude-solid: #f2a81d;
+  --stage-interview: #6b2fd9;
+  --stage-interview-soft: #ece1ff;
+  --stage-interview-solid: #8f5bf5;
+  --stage-offer: #1b7f3b;
+  --stage-offer-soft: #ddf3d0;
+  --stage-offer-solid: #3fb950;
+  --stage-rejected: #c2391b;
+  --stage-rejected-soft: #ffe1d8;
+  --stage-rejected-solid: #ff5a36;
 
-  /* Company monogram avatars (hue is set per company) */
-  --avatar-l-bg: 94%;
-  --avatar-l-fg: 32%;
-  --avatar-s: 70%;
+  /* Company monograms */
+  --avatar-l-bg: 90%;
+  --avatar-l-fg: 28%;
+  --avatar-s: 65%;
 
   /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  --text-xs: 0.75rem;   /* 12px - badges, captions */
-  --text-sm: 0.875rem;  /* 14px - table cells, helper text */
-  --text-base: 1rem;    /* 16px - body */
-  --text-lg: 1.125rem;  /* 18px - card titles */
-  --text-xl: 1.5rem;    /* 24px - page titles */
-  --text-2xl: 2rem;     /* 32px - stat numbers, hero */
-  --leading-tight: 1.25;
+  --font-display: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
+  --font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.75rem;
+  --leading-tight: 1.1;
   --leading-normal: 1.5;
 
   /* Spacing (4px scale) */
@@ -83,82 +95,102 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  /* Shape and depth */
+  /* Shape and depth: chunky ink outlines with hard offset shadows */
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
   --radius-pill: 999px;
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
-  --shadow-md: 0 6px 16px -4px rgb(15 23 42 / 0.1), 0 2px 4px rgb(15 23 42 / 0.04);
-  --shadow-lg: 0 24px 48px -12px rgb(15 23 42 / 0.25);
-  --focus-ring: 0 0 0 3px rgb(79 70 229 / 0.4);
+  --border-ink: 1.5px solid var(--color-ink);
+  --shadow-sm: 0 1px 0 rgb(22 20 29 / 0.04);
+  --shadow-md: 0 10px 24px -12px rgb(22 20 29 / 0.25);
+  --shadow-lg: 0 28px 60px -20px rgb(22 20 29 / 0.45);
+  --shadow-hard: 4px 4px 0 var(--color-ink);
+  --shadow-hard-sm: 2px 2px 0 var(--color-ink);
+  --shadow-hard-lg: 6px 6px 0 var(--color-ink);
+  --focus-ring: 0 0 0 3px var(--color-lime), 0 0 0 4.5px var(--color-ink);
 
   /* Layout */
-  --container-max: 1200px;
-  --sidebar-width: 248px;
+  --container-max: 1220px;
+  --sidebar-width: 252px;
   --topbar-height: 64px;
-  --bottom-nav-height: 64px;
+  --bottom-nav-height: 68px;
 
   /* Motion */
-  --transition-fast: 120ms ease-out;
-  --transition-base: 200ms ease-out;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 120ms var(--ease-out);
+  --transition-base: 220ms var(--ease-out);
+
+  --grain-opacity: 0.06;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --color-primary: #818cf8;
-  --color-primary-hover: #a5b4fc;
-  --color-primary-soft: rgb(129 140 248 / 0.14);
-  --color-primary-border: rgb(129 140 248 / 0.4);
-  --color-on-primary: #0b1020;
-  --color-accent: #a78bfa;
-  --gradient-brand: linear-gradient(135deg, #3730a3 0%, #5b21b6 55%, #7e22ce 100%);
+  --color-ink: #f3efe6;
+  --color-on-ink: #16141d;
+  --color-lime: #cdf25c;
+  --color-lime-strong: #cdf25c;
+  --color-lime-soft: rgb(205 242 92 / 0.14);
+  --color-coral: #ff7a5c;
+  --color-coral-soft: rgb(255 90 54 / 0.16);
+  --sidebar-bg: #121017;
+  --sidebar-text: #aaa3b6;
+  --hero-bg: #1d1a26;
 
-  --color-bg: #0b1020;
-  --color-surface: #121a2e;
-  --color-surface-muted: #19223a;
-  --color-surface-raised: #1a2440;
-  --color-border: #26314f;
-  --color-border-strong: #36426a;
-  --color-text: #e8ebf4;
-  --color-text-muted: #a8b1c8;
-  --color-text-subtle: #8b94ae;
-  --color-overlay: rgb(2 6 23 / 0.7);
+  --color-primary: #a99bff;
+  --color-primary-hover: #c5bbff;
+  --color-primary-soft: rgb(169 155 255 / 0.15);
+  --color-primary-border: rgb(169 155 255 / 0.4);
+  --color-on-primary: #16141d;
+  --color-accent: #ff7a5c;
 
-  --color-success: #86efac;
-  --color-success-soft: rgb(34 197 94 / 0.16);
-  --color-warning: #fcd34d;
-  --color-warning-soft: rgb(245 158 11 / 0.16);
-  --color-danger: #fca5a5;
-  --color-danger-soft: rgb(239 68 68 / 0.16);
-  --color-danger-hover: #fecaca;
-  --color-info: #93c5fd;
-  --color-info-soft: rgb(59 130 246 / 0.16);
+  --color-bg: #0f0e13;
+  --color-surface: #18161f;
+  --color-surface-muted: #221f2b;
+  --color-surface-raised: #24212e;
+  --color-border: #2f2b3a;
+  --color-border-strong: #4a4458;
+  --color-text: #f3efe6;
+  --color-text-muted: #b8b1c4;
+  --color-text-subtle: #908a9d;
+  --color-overlay: rgb(5 4 8 / 0.72);
 
-  --stage-applied: #93c5fd;
-  --stage-applied-soft: rgb(59 130 246 / 0.18);
-  --stage-aptitude: #fcd34d;
-  --stage-aptitude-soft: rgb(245 158 11 / 0.18);
-  --stage-interview: #c4b5fd;
-  --stage-interview-soft: rgb(139 92 246 / 0.2);
-  --stage-offer: #86efac;
-  --stage-offer-soft: rgb(34 197 94 / 0.18);
-  --stage-rejected: #fca5a5;
-  --stage-rejected-soft: rgb(239 68 68 / 0.18);
+  --color-success: #8ee39a;
+  --color-success-soft: rgb(63 185 80 / 0.16);
+  --color-warning: #ffcd6b;
+  --color-warning-soft: rgb(242 168 29 / 0.16);
+  --color-danger: #ff9c85;
+  --color-danger-soft: rgb(255 90 54 / 0.16);
+  --color-danger-hover: #ffc1b2;
+  --color-info: #9db4ff;
+  --color-info-soft: rgb(76 116 240 / 0.18);
 
-  --avatar-l-bg: 22%;
-  --avatar-l-fg: 80%;
+  --stage-applied: #9db4ff;
+  --stage-applied-soft: rgb(76 116 240 / 0.2);
+  --stage-aptitude: #ffcd6b;
+  --stage-aptitude-soft: rgb(242 168 29 / 0.18);
+  --stage-interview: #c9adff;
+  --stage-interview-soft: rgb(143 91 245 / 0.22);
+  --stage-offer: #8ee39a;
+  --stage-offer-soft: rgb(63 185 80 / 0.18);
+  --stage-rejected: #ff9c85;
+  --stage-rejected-soft: rgb(255 90 54 / 0.18);
+
+  --avatar-l-bg: 24%;
+  --avatar-l-fg: 82%;
   --avatar-s: 45%;
 
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 8px 20px -6px rgb(0 0 0 / 0.5);
-  --shadow-lg: 0 24px 48px -12px rgb(0 0 0 / 0.7);
-  --focus-ring: 0 0 0 3px rgb(129 140 248 / 0.5);
+  --border-ink: 1.5px solid #3c3648;
+  --shadow-hard: 4px 4px 0 var(--color-lime);
+  --shadow-hard-sm: 2px 2px 0 var(--color-lime);
+  --shadow-hard-lg: 6px 6px 0 var(--color-lime);
+  --shadow-md: 0 12px 28px -12px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 28px 60px -20px rgb(0 0 0 / 0.8);
+  --focus-ring: 0 0 0 3px var(--color-lime), 0 0 0 4.5px #0f0e13;
+
+  --grain-opacity: 0.08;
 }
 
-/* Breakpoints (use in media queries; CSS variables can't be used there):
- *   sm: 640px   md: 768px   lg: 1024px   xl: 1280px
- * Build mobile-first: base styles for phones, then @media (min-width: ...).
- */
+/* Breakpoints: sm 640px, md 768px, lg 1024px, xl 1280px. Write mobile-first. */

@@ -20,7 +20,7 @@ export const formatDateTime = (value) =>
 export const formatWeekdayDate = (value) =>
   new Date(value).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
 
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const plural = (n, word, pluralWord) => `${n} ${n === 1 ? word : pluralWord || `${word}s`}`;
 
 // Countdown label + urgency used by deadline chips and reminders.
 export function timeLeft(deadline, now = Date.now()) {

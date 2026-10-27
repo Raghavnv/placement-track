@@ -11,6 +11,10 @@ import { getMyApplications } from '../../services/applicationService';
 import { pluralize } from '../../utils/format';
 import { KANBAN_COLUMNS } from '../../utils/stages';
 import { useCalendarDownload } from './DashboardPage';
+import { useEffect } from 'react';
+import confetti from '../../utils/confetti';
+
+const CELEBRATED_KEY = 'pt_celebrated_offers';
 
 export default function ApplicationsPage() {
   useDocumentTitle('My applications');
@@ -29,6 +33,25 @@ export default function ApplicationsPage() {
       ...current,
       data: current.data.map((a) => (a._id === updated._id ? { ...a, notes: updated.notes, updatedAt: updated.updatedAt } : a)),
     }));
+
+  useEffect(() => {
+    if (!data) return;
+    const offers = data.data.filter((a) => a.stage === 'offer').map((a) => a._id);
+    let seen = [];
+    try {
+      seen = JSON.parse(localStorage.getItem(CELEBRATED_KEY) || '[]');
+    } catch {
+      seen = [];
+    }
+    if (offers.some((id) => !seen.includes(id))) {
+      confetti();
+      try {
+        localStorage.setItem(CELEBRATED_KEY, JSON.stringify([...new Set([...seen, ...offers])]));
+      } catch {
+        // Celebrating again next time is fine.
+      }
+    }
+  }, [data]);
 
   const total = data?.data.length || 0;
   const offers = data?.countsByStage.offer || 0;

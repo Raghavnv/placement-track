@@ -4,6 +4,7 @@ import { Save } from 'lucide-react';
 import Button from '../common/Button';
 import ConfirmDialog from '../common/ConfirmDialog';
 import { Segmented, SelectField, TextareaField, TextField } from '../common/Field';
+import TagInput from '../common/TagInput';
 import { InlineAlert } from '../common/States';
 import DriveCard from '../student/DriveCard';
 import { BRANCHES, BRANCH_NAMES, GRADUATION_YEARS, JOB_TYPES } from '../../utils/constants';
@@ -16,6 +17,7 @@ const toForm = (drive) => ({
   package: drive?.package ?? '',
   location: drive?.location || '',
   jobType: drive?.jobType || 'full-time',
+  skills: drive?.skills || [],
   minCgpa: drive?.eligibility?.minCgpa ?? '6',
   maxBacklogs: drive?.eligibility?.maxBacklogs ?? '0',
   graduationYear: drive?.eligibility?.graduationYear ? String(drive.eligibility.graduationYear) : '',
@@ -52,6 +54,7 @@ function toPayload(form, isEdit) {
     package: Number(form.package),
     location: form.location.trim(),
     jobType: form.jobType,
+    skills: form.skills,
     eligibility: {
       minCgpa: Number(form.minCgpa),
       maxBacklogs: Number(form.maxBacklogs),
@@ -135,6 +138,8 @@ export default function DriveForm({ drive, onSubmit, submitLabel }) {
     deadline: form.deadline ? new Date(form.deadline).toISOString() : new Date(Date.now() + 7 * 864e5).toISOString(),
     isEligible: true,
     hasApplied: false,
+    matchScore: 82,
+    matchReasons: form.skills.length ? [`Looks for ${form.skills.slice(0, 3).join(', ')}`] : [],
   };
 
   return (
@@ -155,6 +160,16 @@ export default function DriveForm({ drive, onSubmit, submitLabel }) {
               placeholder="Selection process, training, bond, anything students should know."
               {...bind('description')}
             />
+            <div className="form-grid__full">
+              <TagInput
+                label="Skills the company is looking for"
+                value={form.skills}
+                onChange={(value) => set('skills', value)}
+                max={15}
+                suggestions={['Java', 'Python', 'C++', 'SQL', 'DSA', 'React', 'Node.js', 'AWS', 'Machine Learning', 'Excel', 'Power BI', 'Communication', 'Aptitude', 'AutoCAD', 'MATLAB', 'Embedded C']}
+                placeholder="Used to compute student match scores"
+              />
+            </div>
           </div>
         </fieldset>
 

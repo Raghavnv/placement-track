@@ -50,8 +50,10 @@ export default function LoginPage() {
     <AuthLayout variant="student">
       <div className="auth-card">
         <div className="auth-card__head">
-          <h2 className="auth-card__title">Welcome back</h2>
-          <p className="muted">Log in to track your placement journey.</p>
+          <h2 className="auth-card__title">
+            Welcome <mark>back.</mark>
+          </h2>
+          <p className="muted">Pick up right where you left off.</p>
         </div>
 
         {sessionExpired && !formError && (

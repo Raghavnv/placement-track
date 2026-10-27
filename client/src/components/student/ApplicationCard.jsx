@@ -9,14 +9,14 @@ function ProgressDots({ application }) {
   const rejected = application.stage === 'rejected';
   const stopAt = rejected ? rejectedAt(application) : null;
   return (
-    <ol className="progress-dots" aria-label="Progress">
+    <ol className="mini-track" aria-label="Progress">
       {PIPELINE.map((stage) => {
         const isReached = reached.has(stage);
         const isStop = stage === stopAt;
         return (
           <li
             key={stage}
-            className={`progress-dots__dot ${isReached ? `is-reached is-${stage}` : ''} ${isStop ? 'is-stop' : ''}`}
+            className={`mini-track__stop ${isReached ? `is-reached is-${stage}` : ''} ${isStop ? 'is-stop' : ''}`}
             title={STAGE_LABELS[stage]}
           >
             <span className="sr-only">

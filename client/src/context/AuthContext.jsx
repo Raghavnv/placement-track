@@ -47,9 +47,12 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  // After PATCH /auth/me, swap in the fresh user (e.g. onboarding answers).
+  const updateUser = useCallback((nextUser) => setUser(nextUser), []);
+
   const value = useMemo(
-    () => ({ user, token: getToken(), loading, sessionExpired, login, register, logout }),
-    [user, loading, sessionExpired, login, register, logout],
+    () => ({ user, token: getToken(), loading, sessionExpired, login, register, logout, updateUser }),
+    [user, loading, sessionExpired, login, register, logout, updateUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

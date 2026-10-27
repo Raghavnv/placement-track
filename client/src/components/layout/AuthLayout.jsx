@@ -1,80 +1,106 @@
-import { BellRing, CalendarCheck2, KanbanSquare, BarChart3, Filter, Users } from 'lucide-react';
+import { BarChart3, BellRing, CalendarCheck2, KanbanSquare, Sparkles, Users } from 'lucide-react';
 import Logo from '../common/Logo';
+import Marquee from '../common/Marquee';
 import ThemeToggle from './ThemeToggle';
 
 const COPY = {
   student: {
-    headline: 'Every drive. Every round. One board.',
-    lead: 'Find drives you qualify for, apply in one click and watch each application move from aptitude to offer.',
+    sticker: 'Placement season is live',
+    headline: ['Your placement season,', 'on track.'],
+    lead: 'Tell us what you are good at. We match you to drives you qualify for, remind you before deadlines and track every round to the offer.',
     points: [
-      { icon: Filter, text: 'Eligibility checked for you on every drive' },
-      { icon: KanbanSquare, text: 'A Kanban board for all your applications' },
-      { icon: BellRing, text: 'Deadline reminders and calendar sync' },
+      { icon: Sparkles, text: 'Match scores for every drive' },
+      { icon: KanbanSquare, text: 'A board for every application' },
+      { icon: BellRing, text: 'Deadline alerts in your calendar' },
     ],
   },
   admin: {
-    headline: 'Run the placement season from one dashboard.',
+    sticker: 'Officer portal',
+    headline: ['Run the season', 'like clockwork.'],
     lead: 'Post drives, move applicants through each round and see exactly where students drop off.',
     points: [
-      { icon: Users, text: 'Applicants per drive with stage tracking' },
-      { icon: BarChart3, text: 'Live placement rate and package stats' },
-      { icon: CalendarCheck2, text: 'Deadlines and drive dates at a glance' },
+      { icon: Users, text: 'Applicants per drive, round by round' },
+      { icon: BarChart3, text: 'Live placement rate and funnel' },
+      { icon: CalendarCheck2, text: 'Deadlines and drive days at a glance' },
     ],
   },
 };
 
-const DEMO_CARDS = [
-  { company: 'Zoho', role: 'MTS', column: 0, delay: '0s' },
-  { company: 'Infosys', role: 'Systems Engg.', column: 1, delay: '-2s' },
-  { company: 'Deloitte', role: 'Analyst', column: 2, delay: '-4s' },
+const TICKETS_A = [
+  ['Infosys', 'Systems Engineer', '6.5'],
+  ['Zoho', 'Member Technical Staff', '8.4'],
+  ['Google', 'SWE Intern', '14.4'],
+  ['Deloitte', 'Analyst', '7.6'],
+  ['TCS', 'Ninja Developer', '3.6'],
+];
+const TICKETS_B = [
+  ['Bosch', 'Graduate Engineer Trainee', '5.5'],
+  ['Accenture', 'Associate SE', '4.5'],
+  ['Wipro', 'Project Engineer', '3.5'],
+  ['Razorpay', 'Backend Engineer', '18'],
+  ['Atlassian', 'Graduate SDE', '24'],
 ];
 
-// Decorative mini board: cards glide across stages, hinting at what the app does.
-function BoardIllustration() {
+function Ticket({ company, role, pkg }) {
   return (
-    <div className="auth-board" aria-hidden="true">
-      {['Applied', 'Aptitude', 'Interview', 'Offer'].map((label, i) => (
-        <div key={label} className={`auth-board__col auth-board__col--${i}`}>
-          <span className="auth-board__label">{label}</span>
-        </div>
-      ))}
-      {DEMO_CARDS.map((card) => (
-        <div key={card.company} className="auth-board__card" style={{ animationDelay: card.delay, '--row': card.column }}>
-          <span className="auth-board__mono">{card.company[0]}</span>
-          <span>
-            <strong>{card.company}</strong>
-            <small>{card.role}</small>
-          </span>
-        </div>
-      ))}
-    </div>
+    <span className="ticket-chip">
+      <span className="ticket-chip__mono">{company[0]}</span>
+      <span className="ticket-chip__text">
+        <strong>{company}</strong>
+        <small>{role}</small>
+      </span>
+      <span className="ticket-chip__pkg">₹{pkg}L</span>
+    </span>
   );
 }
 
-export default function AuthLayout({ variant = 'student', children }) {
+export default function AuthLayout({ variant = 'student', children, wide = false }) {
   const copy = COPY[variant];
   return (
     <div className={`auth auth--${variant}`}>
-      <section className="auth__brand">
-        <div className="auth__brand-inner">
-          <Logo size={36} subtitle={variant === 'admin' ? 'Officer portal' : undefined} />
-          <div className="auth__pitch">
-            <h1 className="auth__headline">{copy.headline}</h1>
-            <p className="auth__lead">{copy.lead}</p>
-          </div>
-          <BoardIllustration />
-          <ul className="auth__points">
-            {copy.points.map(({ icon: Icon, text }) => (
-              <li key={text}>
-                <span className="auth__point-icon">
-                  <Icon size={18} aria-hidden="true" />
-                </span>
-                {text}
-              </li>
-            ))}
-          </ul>
+      <section className="auth__brand" aria-label="About PlacementTrack">
+        <div className="auth__brand-top">
+          <Logo size={36} />
         </div>
+
+        <div className="auth__pitch">
+          <span className="sticker sticker--lime">{copy.sticker}</span>
+          <h1 className="auth__headline">
+            {copy.headline[0]} <mark>{copy.headline[1]}</mark>
+          </h1>
+          <p className="auth__lead">{copy.lead}</p>
+        </div>
+
+        <div className="auth__tickets" aria-hidden="true">
+          <Marquee speed={38}>
+            {TICKETS_A.map(([c, r, p]) => (
+              <Ticket key={c} company={c} role={r} pkg={p} />
+            ))}
+          </Marquee>
+          <Marquee speed={46} reverse>
+            {TICKETS_B.map(([c, r, p]) => (
+              <Ticket key={c} company={c} role={r} pkg={p} />
+            ))}
+          </Marquee>
+          <div className="auth__offer" aria-hidden="true">
+            <span className="auth__offer-emoji">🎉</span>
+            <span>
+              <strong>Offer received</strong>
+              <small>Deloitte · Analyst · ₹7.6 LPA</small>
+            </span>
+          </div>
+        </div>
+
+        <ul className="auth__points">
+          {copy.points.map(({ icon: Icon, text }) => (
+            <li key={text}>
+              <Icon size={18} aria-hidden="true" />
+              {text}
+            </li>
+          ))}
+        </ul>
       </section>
+
       <section className="auth__panel">
         <div className="auth__panel-top">
           <span className="auth__mobile-logo">
@@ -82,7 +108,7 @@ export default function AuthLayout({ variant = 'student', children }) {
           </span>
           <ThemeToggle />
         </div>
-        <div className="auth__form-wrap">{children}</div>
+        <div className={`auth__form-wrap ${wide ? 'auth__form-wrap--wide' : ''}`}>{children}</div>
       </section>
     </div>
   );

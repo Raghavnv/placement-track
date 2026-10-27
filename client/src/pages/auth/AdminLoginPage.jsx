@@ -57,7 +57,9 @@ export default function AdminLoginPage() {
           <p className="eyebrow">
             <ShieldCheck size={14} aria-hidden="true" /> Officer portal
           </p>
-          <h2 className="auth-card__title">Placement cell login</h2>
+          <h2 className="auth-card__title">
+            Placement cell <mark>login.</mark>
+          </h2>
           <p className="muted">Manage drives, applicants and placement stats.</p>
         </div>
 

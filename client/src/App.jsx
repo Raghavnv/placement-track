@@ -6,7 +6,8 @@ import ProtectedRoute, { HomeRedirect, PublicOnlyRoute } from './components/layo
 import AppShell from './components/layout/AppShell';
 import ServerWakeBanner from './components/layout/ServerWakeBanner';
 import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
+import SignupPage from './pages/auth/SignupPage';
+import OnboardingPage from './pages/student/OnboardingPage';
 import AdminLoginPage from './pages/auth/AdminLoginPage';
 import DashboardPage from './pages/student/DashboardPage';
 import DrivesPage from './pages/student/DrivesPage';
@@ -44,13 +45,14 @@ const router = createBrowserRouter([
         element: <PublicOnlyRoute />,
         children: [
           { path: '/login', element: <LoginPage /> },
-          { path: '/register', element: <RegisterPage /> },
+          { path: '/register', element: <SignupPage /> },
           { path: '/admin/login', element: <AdminLoginPage /> },
         ],
       },
       {
         element: <ProtectedRoute role="student" />,
         children: [
+          { path: '/onboarding', element: <OnboardingPage /> },
           {
             element: <AppShell variant="student" />,
             children: [
