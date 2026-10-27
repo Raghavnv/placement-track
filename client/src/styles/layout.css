@@ -92,6 +92,7 @@
 /* ===== Auth ===== */
 .auth { min-height: 100vh; display: grid; }
 .auth__brand { display: none; }
+.auth__pitch .sticker { transform: none; }
 .auth__panel { display: flex; flex-direction: column; padding: var(--space-4); }
 .auth__panel-top { display: flex; align-items: center; justify-content: space-between; }
 .auth__form-wrap { flex: 1; display: grid; place-items: center; padding: var(--space-6) 0; }
@@ -124,7 +125,7 @@
   .auth__lead { font-size: var(--text-lg); color: rgb(255 253 248 / 0.72); max-width: 44ch; }
   .auth__tickets { position: relative; display: grid; gap: var(--space-3); }
   .auth__offer {
-    --rot: 4deg; position: absolute; right: 48px; top: -36px; z-index: 2;
+    --rot: 4deg; order: -1; justify-self: end; margin-right: 48px; /* sits above the ticket rows instead of covering them */
     display: flex; align-items: center; gap: var(--space-3); padding: 12px 16px;
     background: var(--color-lime); color: #16141d; border: 1.5px solid #16141d; border-radius: 14px;
     box-shadow: 4px 4px 0 #fffdf8; animation: float 4s ease-in-out infinite;
