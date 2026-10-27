@@ -7,6 +7,7 @@ import MatchRing from '../../components/common/MatchRing';
 import { CompanyAvatar } from '../../components/common/Avatar';
 import { CardSkeleton, EmptyState, ErrorState, Skeleton } from '../../components/common/States';
 import ReminderPanel from '../../components/student/ReminderPanel';
+import AnnouncementsPanel from '../../components/student/AnnouncementsPanel';
 import ProfileCard from '../../components/student/ProfileCard';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -107,6 +108,8 @@ export default function DashboardPage() {
           </header>
           <MetroLine stations={stations} linkTo="/student/applications" />
         </section>
+
+        <AnnouncementsPanel className="bento__updates" />
 
         <div className="bento__reminders">
           {loading && !data ? <CardSkeleton lines={4} /> : data && <ReminderPanel reminders={data.reminders} days={REMINDER_DAYS} />}

@@ -6,6 +6,7 @@ import {
   KanbanSquare,
   LayoutDashboard,
   LogOut,
+  Megaphone,
   Menu,
   PlusCircle,
   X,
@@ -26,6 +27,7 @@ const NAV = {
     { to: '/admin', label: 'Dashboard', icon: BarChart3, end: true },
     { to: '/admin/drives', label: 'Drives', icon: Briefcase, exclude: '/admin/drives/new' },
     { to: '/admin/drives/new', label: 'New drive', icon: PlusCircle },
+    { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   ],
 };
 

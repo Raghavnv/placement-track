@@ -17,6 +17,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ManageDrivesPage from './pages/admin/ManageDrivesPage';
 import DriveFormPage from './pages/admin/DriveFormPage';
 import ApplicantsPage from './pages/admin/ApplicantsPage';
+import AnnouncementsPage from './pages/admin/AnnouncementsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RouteError from './pages/RouteError';
 
@@ -75,6 +76,7 @@ const router = createBrowserRouter([
               { path: '/admin/drives/new', element: <DriveFormPage /> },
               { path: '/admin/drives/:id/edit', element: <DriveFormPage key="edit" /> },
               { path: '/admin/drives/:id/applicants', element: <ApplicantsPage /> },
+              { path: '/admin/announcements', element: <AnnouncementsPage /> },
             ],
           },
         ],

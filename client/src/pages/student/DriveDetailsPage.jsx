@@ -7,6 +7,7 @@ import { CardSkeleton, EmptyState, ErrorState } from '../../components/common/St
 import { EligibilityBadge } from '../../components/student/DriveCard';
 import EligibilityChecklist from '../../components/student/EligibilityChecklist';
 import ApplyPanel from '../../components/student/ApplyPanel';
+import AnnouncementsPanel from '../../components/student/AnnouncementsPanel';
 import useAsync from '../../hooks/useAsync';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { getDrive } from '../../services/driveService';
@@ -67,6 +68,8 @@ export default function DriveDetailsPage() {
                 </div>
                 <EligibilityBadge drive={drive} />
               </section>
+
+              {drive.hasApplied && <AnnouncementsPanel driveId={drive._id} title="Updates from the placement cell" preview={5} />}
 
               <section className="card match-panel" aria-labelledby="match-title">
                 <MatchRing score={drive.matchScore} size={88} />

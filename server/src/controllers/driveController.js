@@ -7,6 +7,7 @@ const { containsRegex, paginationMeta } = require('../utils/query');
 const { DRIVE_SUMMARY_FIELDS } = require('../utils/constants');
 const Drive = require('../models/Drive');
 const Application = require('../models/Application');
+const Announcement = require('../models/Announcement');
 const User = require('../models/User');
 
 const SORTS = {
@@ -104,7 +105,10 @@ exports.updateDrive = asyncHandler(async (req, res) => {
 
 exports.deleteDrive = asyncHandler(async (req, res) => {
   const drive = await findDriveOr404(req.params.id);
-  const { deletedCount } = await Application.deleteMany({ drive: drive._id });
+  const [{ deletedCount }] = await Promise.all([
+    Application.deleteMany({ drive: drive._id }),
+    Announcement.deleteMany({ drive: drive._id }),
+  ]);
   await drive.deleteOne();
   res.json({ message: 'Drive deleted', deletedApplications: deletedCount });
 });

@@ -13,6 +13,7 @@ MongoDB with Mongoose. The database is `placement-track` and has three collectio
 - One **student** has many **applications**; one **drive** has many **applications**.
 - `Application` is the join between a student and a drive. It is **unique per (student, drive)**.
 - Deleting a drive deletes its applications (done in the controller with `Application.deleteMany({ drive })`).
+- One **admin** posts many **announcements**; an announcement targets every student (`drive: null`) or one **drive**'s applicants. Deleting a drive deletes its announcements.
 - One **student** has at most one **resume** (`Resume.student -> User._id`, unique). The file's details are copied onto `User.resume` for display.
 
 ---
@@ -128,6 +129,23 @@ const TRANSITIONS = {
 | `createdAt` / `updatedAt` | Date | auto | | |
 
 Kept apart from `users` so loading a user never loads the file. Stored in MongoDB because Render's free tier has no persistent disk.
+
+---
+
+## 5. `Announcement`  (collection: `announcements`)
+
+| Field | Type | Required | Constraints / default | Notes |
+|---|---|---|---|---|
+| `_id` | ObjectId | auto | | |
+| `title` | String | yes | trim, 3-120 chars | |
+| `message` | String | yes | trim, max 2000 chars | |
+| `link` | String | no | max 500, default `""` | `http(s)` URL: test link, form, venue map |
+| `drive` | ObjectId → Drive | no | default `null` | `null` = every student |
+| `stages` | [String] | no | stage enum, default `[]` | With a drive: only applicants currently at these stages; empty = all applicants |
+| `createdBy` | ObjectId → User | yes | | The officer who posted it |
+| `createdAt` / `updatedAt` | Date | auto | | |
+
+Indexes: `{ createdAt: -1 }`, `{ drive: 1, createdAt: -1 }`.
 
 ---
 

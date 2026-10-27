@@ -221,6 +221,9 @@ For students, list and detail responses also include:
 | 20 | GET | `/api/auth/me/resume` | Student | Download own resume |
 | 21 | DELETE | `/api/auth/me/resume` | Student | Remove own resume |
 | 22 | GET | `/api/admin/students/:id/resume` | Admin | Open a student's resume |
+| 23 | GET | `/api/announcements` | Any | Announcements (students: only those meant for them) |
+| 24 | POST | `/api/announcements` | Admin | Post an announcement |
+| 25 | DELETE | `/api/announcements/:id` | Admin | Delete an announcement |
 
 ---
 
@@ -334,6 +337,55 @@ Errors: `404 NOT_FOUND` (nothing uploaded), `401`, `403`.
 ### 22. `GET /api/admin/students/:id/resume`  (Admin)
 Same response as #20, for any student. Applicant rows from #10 include `student.resume` (`{ fileName, mimeType, size, uploadedAt }`, missing when none), so the officer UI only shows *View* for students who uploaded one.
 Errors: `400 INVALID_ID`, `404 NOT_FOUND` (no such student, or no resume), `401`, `403` (student token).
+
+---
+
+## 3a. Announcements
+
+Notices from the placement cell: test venues, links, schedules, results. An announcement goes either to **every student** (`drive: null`) or to **one drive's applicants**, optionally only those whose current stage is in `stages`.
+
+### 23. `GET /api/announcements`
+Query: `drive` (optional, only that drive's announcements), `page`, `limit` (default 10, max 50).
+
+- **Student:** announcements with `drive: null`, plus those for drives they applied to where `stages` is empty or contains their current stage. No `createdBy`.
+- **Admin:** all announcements, each with `audienceCount` (how many students can see it now).
+
+**200**
+```json
+{
+  "data": [
+    {
+      "_id": "...",
+      "title": "Interview slots for Accenture",
+      "message": "Interviews are on Friday in the Placement Cell, Block C…",
+      "link": "https://forms.gle/…",
+      "drive": { "_id": "...", "companyName": "Accenture", "role": "Associate Software Engineer" },
+      "stages": ["interview"],
+      "createdAt": "2026-10-28T09:30:00.000Z",
+      "updatedAt": "2026-10-28T09:30:00.000Z",
+      "audienceCount": 4
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 1, "totalPages": 1 }
+}
+```
+Newest first. Errors: `400 VALIDATION_ERROR`, `401`.
+
+### 24. `POST /api/announcements`  (Admin)
+| Field | Rule |
+|---|---|
+| title | required, 3-120 chars |
+| message | required, 1-2000 chars |
+| link | optional; `http(s)://` URL, max 500 chars, or `""` |
+| drive | optional drive id; `null`/missing = every student |
+| stages | optional array of stages; only allowed with `drive`; empty = all applicants |
+
+**201** `{ "announcement": { /* as above, with audienceCount */ } }`
+Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (unknown drive), `401`, `403`.
+
+### 25. `DELETE /api/announcements/:id`  (Admin)
+**200** `{ "message": "Announcement deleted" }`. Errors: `400 INVALID_ID`, `404 NOT_FOUND`, `401`, `403`.
+Deleting a drive (#8) also deletes its announcements.
 
 ---
 
@@ -579,6 +631,7 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Announcements: new #23-25, drive delete removes its announcements | Pranav |
 | 2026-10-28 | Resume upload: new #19-21 `/auth/me/resume`, `User.resume`, `415 UNSUPPORTED_FILE_TYPE`; #22 officer resume view, `student.resume` in applicants | Pranav |
 | 2026-10-28 | Onboarding: `college` on register, `needsOnboarding`, new #18 `PATCH /auth/me`, drive `skills`, `matchScore`/`matchReasons`, `sort=match` | Raghav |
 | 2026-10-27 | Backend implemented. Added `ROLL_NUMBER_TAKEN`, `413`, `429`; students' default drive list hides past deadlines; `eligibilityChecks` on drive details; `stageHistory` in applicants; `funnel` in stats; new #17 calendar export; dev port 5050 | Raghav |

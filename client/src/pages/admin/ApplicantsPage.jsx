@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Clock, Download, FileText, Pencil, Search, SearchX, Users } from 'lucide-react';
+import { CalendarDays, Clock, Download, FileText, Megaphone, Pencil, Search, SearchX, Users } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Pagination from '../../components/common/Pagination';
@@ -136,6 +136,9 @@ export default function ApplicantsPage() {
         actions={
           drive && (
             <>
+              <Button as={Link} to={`/admin/announcements?drive=${id}`} variant="secondary" icon={Megaphone}>
+                Announce
+              </Button>
               <Button variant="secondary" icon={Download} onClick={exportCsv} loading={exporting} disabled={!total}>
                 Export CSV
               </Button>
