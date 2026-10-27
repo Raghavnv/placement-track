@@ -1,6 +1,7 @@
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { checkEligibility, eligibilityFilter } = require('../utils/eligibility');
+const { computeMatch } = require('../utils/matching');
 const { emptyStageCounts } = require('../utils/stages');
 const { containsRegex, paginationMeta } = require('../utils/query');
 const { DRIVE_SUMMARY_FIELDS } = require('../utils/constants');
@@ -33,8 +34,11 @@ async function decorate(drives, user) {
   return drives.map((drive) => {
     const out = { ...drive, applicantCount: counts.get(drive._id.toString()) || 0 };
     if (applied) {
+      const match = computeMatch(user, drive);
       out.isEligible = checkEligibility(user, drive).eligible;
       out.hasApplied = applied.has(drive._id.toString());
+      out.matchScore = match.score;
+      out.matchReasons = match.reasons;
     }
     return out;
   });
@@ -55,9 +59,17 @@ exports.listDrives = asyncHandler(async (req, res) => {
   if (minPackage !== undefined) filter.package = { $gte: minPackage };
   if (eligibleOnly && isStudent(req.user)) Object.assign(filter, eligibilityFilter(req.user));
 
+  if (sort === 'match' && isStudent(req.user)) {
+    // Match scores are computed per student, so rank in memory (drive counts are small).
+    const all = await decorate(await Drive.find(filter).select('-__v').sort(SORTS.deadline).lean(), req.user);
+    all.sort((a, b) => b.matchScore - a.matchScore || a.deadline - b.deadline);
+    res.json({ data: all.slice((page - 1) * limit, page * limit), pagination: paginationMeta(page, limit, all.length) });
+    return;
+  }
+
   const [total, drives] = await Promise.all([
     Drive.countDocuments(filter),
-    Drive.find(filter).select('-__v').sort(SORTS[sort]).skip((page - 1) * limit).limit(limit).lean(),
+    Drive.find(filter).select('-__v').sort(SORTS[sort] || SORTS.deadline).skip((page - 1) * limit).limit(limit).lean(),
   ]);
 
   res.json({ data: await decorate(drives, req.user), pagination: paginationMeta(page, limit, total) });

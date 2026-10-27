@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { ROLES, BRANCHES } = require('../utils/constants');
+const { ROLES, BRANCHES, JOB_TYPES } = require('../utils/constants');
+const { ROLE_KEYS, INTEREST_KEYS } = require('../utils/profileOptions');
 
 const SALT_ROUNDS = 10;
 
@@ -35,6 +36,16 @@ const userSchema = new mongoose.Schema(
     },
     graduationYear: { type: Number, min: 2020, max: 2035, required: isStudent },
     phone: { type: String, match: [/^\d{10}$/, 'Phone must be 10 digits'] },
+    college: { type: String, trim: true, maxlength: 120 },
+
+    // Onboarding answers, used for drive match scores.
+    skills: { type: [{ type: String, trim: true, maxlength: 40 }], default: undefined },
+    interests: { type: [{ type: String, enum: INTEREST_KEYS }], default: undefined },
+    preferredRoles: { type: [{ type: String, enum: ROLE_KEYS }], default: undefined },
+    preferredLocations: { type: [{ type: String, trim: true, maxlength: 40 }], default: undefined },
+    jobTypes: { type: [{ type: String, enum: JOB_TYPES }], default: undefined },
+    expectedPackage: { type: Number, min: 0, max: 200 },
+    needsOnboarding: { type: Boolean },
   },
   {
     timestamps: true,

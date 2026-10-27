@@ -19,6 +19,7 @@ async function createStudent(overrides = {}) {
     cgpa: 8,
     backlogs: 0,
     graduationYear: 2027,
+    college: 'RV College of Engineering',
     ...overrides,
   });
 }

@@ -124,6 +124,14 @@ A student is eligible for a drive when **all** of these are true:
   "backlogs": 0,
   "graduationYear": 2027,
   "phone": "9876543210",
+  "college": "RV College of Engineering",
+  "skills": ["Java", "Python", "SQL", "React"],
+  "interests": ["web", "ai"],
+  "preferredRoles": ["software", "web"],
+  "preferredLocations": ["Bengaluru", "Hyderabad"],
+  "jobTypes": ["full-time"],
+  "expectedPackage": 6,
+  "needsOnboarding": false,
   "createdAt": "2026-10-27T09:00:00.000Z",
   "updatedAt": "2026-10-27T09:00:00.000Z"
 }
@@ -155,7 +163,16 @@ Admin users only have `_id, name, email, role, createdAt, updatedAt`.
   "updatedAt": "2026-10-27T09:00:00.000Z"
 }
 ```
-`package` is CTC in LPA (lakhs per annum). For students, list and detail responses also include `"isEligible": true` and `"hasApplied": false`.
+`package` is CTC in LPA (lakhs per annum). Drives also have `"skills": ["Java", "SQL"]` (tags used for matching).
+
+For students, list and detail responses also include:
+```json
+"isEligible": true,
+"hasApplied": false,
+"matchScore": 87,
+"matchReasons": ["3 of 4 skills match (Java, SQL, DSA)", "Fits your Software Engineer goal", "Bengaluru is on your list"]
+```
+`matchScore` (0-100) compares the drive with the student's onboarding answers. Weights: skills 35, role 25, interests 10, location 10, job type 10, package 10 (`server/src/utils/matching.js`). Students who haven't answered get neutral partial credit.
 
 **Application:**
 ```json
@@ -199,6 +216,7 @@ Admin users only have `_id, name, email, role, createdAt, updatedAt`.
 | 15 | GET | `/api/applications/me/reminders` | Student | Upcoming deadlines and drive dates |
 | 16 | GET | `/api/admin/stats` | Admin | Dashboard statistics |
 | 17 | GET | `/api/applications/me/calendar.ics` | Student | Calendar file of deadlines and drive days |
+| 18 | PATCH | `/api/auth/me` | Student | Save onboarding answers / profile |
 
 ---
 
@@ -216,6 +234,7 @@ Request:
   "name": "Asha Rao",
   "email": "asha@college.edu",
   "password": "Str0ngPass!",
+  "college": "RV College of Engineering",
   "rollNumber": "21CS045",
   "branch": "CSE",
   "cgpa": 8.4,
@@ -231,6 +250,7 @@ Validation:
 | name | required, 2-80 chars, trimmed |
 | email | required, valid email, stored lowercase, unique |
 | password | required, min 8 chars, at least one letter and one number |
+| college | required, 2-120 chars |
 | rollNumber | required, 3-20 chars, unique |
 | branch | required, one of `CSE, ISE, ECE, EEE, ME, CE, AIML, DS, OTHER` |
 | cgpa | required, number 0-10 |
@@ -240,8 +260,10 @@ Validation:
 
 **201**
 ```json
-{ "token": "<JWT>", "user": { /* User */ } }
+{ "token": "<JWT>", "user": { /* User, with "needsOnboarding": true */ } }
 ```
+New students have `needsOnboarding: true`. The client sends them through the onboarding questions (skills, interests, roles, preferences) and then calls `PATCH /api/auth/me` with `needsOnboarding: false`.
+
 Errors: `400 VALIDATION_ERROR`, `409 EMAIL_TAKEN`, `409 ROLL_NUMBER_TAKEN`, `429 TOO_MANY_REQUESTS`.
 
 ### 2. `POST /api/auth/login`
@@ -261,6 +283,24 @@ The client sends the user to `/student` or `/admin` based on `user.role`. The ad
 **200** `{ "user": { /* User */ } }`
 Errors: `401 UNAUTHORIZED`. The client calls this on page load to restore the session; on `401` it clears the token and redirects to login.
 
+### 18. `PATCH /api/auth/me`  (Student)
+Saves onboarding answers or profile edits. Send any subset of these fields; anything else (CGPA, branch, role…) is ignored.
+
+| Field | Rule |
+|---|---|
+| college | 2-120 chars |
+| phone | 10 digits, or `""` to clear |
+| skills | up to 25 strings (1-40 chars), de-duplicated case-insensitively |
+| interests | up to 12 of `ai, web, mobile, data, cloud, security, product, core, embedded, finance, consulting, research` |
+| preferredRoles | up to 5 of `software, web, data, cloud, security, consulting, product, core, embedded, finance` |
+| preferredLocations | up to 8 strings (e.g. `Bengaluru`, `Remote`, `Anywhere`) |
+| jobTypes | `full-time` and/or `internship` |
+| expectedPackage | number 0-200 (LPA), or `null` to clear |
+| needsOnboarding | only `false` (marks onboarding complete) |
+
+**200** `{ "user": { /* User */ } }`
+Errors: `400 VALIDATION_ERROR`, `401`, `403` (admin token).
+
 ---
 
 ## 4. Drives
@@ -275,7 +315,7 @@ Query parameters (all optional):
 | `jobType` | `full-time` \| `internship` | |
 | `minPackage` | number | `package >= minPackage` |
 | `eligibleOnly` | `true` | Students only: only drives they are eligible for |
-| `sort` | `deadline` \| `-createdAt` \| `-package` | Default `deadline` (soonest first) |
+| `sort` | `deadline` \| `-createdAt` \| `-package` \| `match` | Default `deadline` (soonest first). `match` (students only) ranks by `matchScore` |
 | `page`, `limit` | number | See 1.3 |
 
 **200** paginated list of Drive objects (students also get `isEligible` and `hasApplied`).
@@ -325,6 +365,7 @@ Validation:
 | eligibility.branches | optional array of branch codes; empty means all branches |
 | eligibility.graduationYear | optional integer or null |
 | eligibility.maxBacklogs | optional integer >= 0, default 0 |
+| skills | optional array of up to 15 strings, used for match scores |
 | deadline | required, ISO date in the future |
 | driveDate | optional, ISO date on or after `deadline` |
 
@@ -504,4 +545,5 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Onboarding: `college` on register, `needsOnboarding`, new #18 `PATCH /auth/me`, drive `skills`, `matchScore`/`matchReasons`, `sort=match` | Raghav |
 | 2026-10-27 | Backend implemented. Added `ROLL_NUMBER_TAKEN`, `413`, `429`; students' default drive list hides past deadlines; `eligibilityChecks` on drive details; `stageHistory` in applicants; `funnel` in stats; new #17 calendar export; dev port 5050 | Raghav |

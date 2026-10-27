@@ -17,7 +17,12 @@ exports.register = asyncHandler(async (req, res) => {
     ]);
   }
 
-  const user = await User.create({ ...profile, role: 'student', passwordHash: await User.hashPassword(password) });
+  const user = await User.create({
+    ...profile,
+    role: 'student',
+    needsOnboarding: true, // the client sends new students through skills/interests/roles questions
+    passwordHash: await User.hashPassword(password),
+  });
   res.status(201).json({ token: signToken(user), user });
 });
 
@@ -36,3 +41,12 @@ exports.login = asyncHandler(async (req, res) => {
 exports.me = (req, res) => {
   res.json({ user: req.user });
 };
+
+exports.updateProfile = asyncHandler(async (req, res) => {
+  const { phone, expectedPackage, ...fields } = req.body;
+  req.user.set(fields);
+  if (phone !== undefined) req.user.phone = phone || undefined;
+  if (expectedPackage !== undefined) req.user.expectedPackage = expectedPackage ?? undefined;
+  await req.user.save();
+  res.json({ user: req.user });
+});

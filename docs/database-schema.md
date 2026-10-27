@@ -31,6 +31,14 @@ MongoDB with Mongoose. The database is `placement-track` and has three collectio
 | `backlogs` | Number | no | integer, min 0, default 0 | Active backlogs |
 | `graduationYear` | Number | students | 2020-2035 | |
 | `phone` | String | no | 10 digits | |
+| `college` | String | students (on register) | max 120 | |
+| `skills` | [String] | no | max 25, each ≤ 40 chars | Onboarding answer, used for match scores |
+| `interests` | [String] | no | enum of interest keys | See `utils/profileOptions.js` |
+| `preferredRoles` | [String] | no | enum of role keys | See `utils/profileOptions.js` |
+| `preferredLocations` | [String] | no | max 8 | |
+| `jobTypes` | [String] | no | `full-time`, `internship` | |
+| `expectedPackage` | Number | no | 0-200 (LPA) | |
+| `needsOnboarding` | Boolean | no | `true` on register, `false` once onboarding is done | Missing = no onboarding needed (older accounts) |
 | `createdAt` / `updatedAt` | Date | auto | | |
 
 Indexes: `{ email: 1 }` unique, `{ rollNumber: 1 }` unique sparse, `{ role: 1 }`.
@@ -51,6 +59,7 @@ Model notes:
 | `package` | Number | yes | > 0, <= 200 | CTC in LPA |
 | `location` | String | no | max 100 chars | |
 | `jobType` | String | yes | enum `full-time`, `internship` | |
+| `skills` | [String] | no | max 15, default `[]` | Skill tags used for match scores |
 | `eligibility` | Object (subdocument) | yes | | See below |
 | `eligibility.minCgpa` | Number | yes | 0-10, default 0 | |
 | `eligibility.branches` | [String] | no | branch enum; default `[]` | Empty = open to all branches |
