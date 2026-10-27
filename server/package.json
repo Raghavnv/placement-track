@@ -7,7 +7,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage",
+    "seed": "node src/utils/seed.js",
+    "seed:admin": "node src/utils/seedAdmin.js"
   },
   "engines": {
     "node": ">=20"
@@ -17,16 +20,36 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5"
+    "mongoose": "^8.9.5",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.4.3",
     "nodemon": "^3.1.9",
     "supertest": "^7.0.0"
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/src/tests/**/*.test.js"]
+    "testMatch": [
+      "**/src/tests/**/*.test.js"
+    ],
+    "setupFiles": [
+      "<rootDir>/src/tests/setup/env.js"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/tests/setup/db.js"
+    ],
+    "globalSetup": "<rootDir>/src/tests/setup/globalSetup.js",
+    "globalTeardown": "<rootDir>/src/tests/setup/globalTeardown.js",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js",
+      "!src/utils/seed*.js",
+      "!src/tests/**"
+    ]
   }
 }
