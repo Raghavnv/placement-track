@@ -400,3 +400,30 @@
 .bento__updates { grid-column: 1 / -1; }
 .bento__updates .notice-list { gap: var(--space-2); }
 .notice-more { margin-top: var(--space-3); }
+
+/* ===== Bulk stage moves ===== */
+.table__check { width: 44px; }
+.table__check input { width: 18px; height: 18px; accent-color: var(--color-ink); cursor: pointer; }
+.table__check input:disabled { cursor: not-allowed; opacity: 0.35; }
+.table tr.is-selected td { background: var(--color-lime-soft); }
+.bulk-bar {
+  position: sticky; bottom: var(--space-4); z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4); border: 1.5px solid #16141d; border-radius: var(--radius-lg);
+  background: #16141d; color: #fffdf8; box-shadow: 4px 4px 0 var(--color-lime); animation: slide-up 200ms var(--ease-out);
+}
+.bulk-bar__count { margin-right: auto; font-size: var(--text-sm); }
+.bulk-bar__count strong { font-family: var(--font-mono); color: var(--color-lime); }
+.stage-move--wrap { flex-wrap: wrap; }
+.stage-move__from { display: inline-flex; align-items: center; gap: 4px; }
+.bulk-hint { font-size: var(--text-xs); margin-top: calc(-1 * var(--space-2)); }
+.bulk-result__moved { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1.5px solid var(--color-ink); border-radius: var(--radius-md); background: var(--color-lime-soft); box-shadow: var(--shadow-hard-sm); }
+.bulk-result__moved svg { flex-shrink: 0; color: var(--color-success); }
+.bulk-result__moved p { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.bulk-result__label { margin-bottom: var(--space-2); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-subtle); }
+.bulk-result__list { display: grid; gap: 2px; max-height: 220px; overflow-y: auto; }
+.bulk-result__list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px var(--space-3); padding: 8px 0; border-bottom: 1px dashed var(--color-border); font-size: var(--text-sm); }
+.bulk-result__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bulk-result__chips span { padding: 3px 8px; border: 1.5px dashed var(--color-border-strong); border-radius: 6px; }
+@media (max-width: 899px) {
+  .table--responsive td.table__check { width: 100%; }
+}

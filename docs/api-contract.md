@@ -224,6 +224,7 @@ For students, list and detail responses also include:
 | 23 | GET | `/api/announcements` | Any | Announcements (students: only those meant for them) |
 | 24 | POST | `/api/announcements` | Admin | Post an announcement |
 | 25 | DELETE | `/api/announcements/:id` | Admin | Delete an announcement |
+| 26 | POST | `/api/drives/:id/applicants/stage` | Admin | Move many applicants at once (by id or roll number) |
 
 ---
 
@@ -505,6 +506,33 @@ Student `notes` are private and **never** included in admin responses.
 
 Errors: `400 INVALID_ID | VALIDATION_ERROR`, `401`, `403`, `404 NOT_FOUND`.
 
+### 26. `POST /api/drives/:id/applicants/stage`  (Admin)
+Moves many applicants of one drive to a stage in one request, following the same transition rules as #13. Pick them **either** by application id (ticked rows) **or** by roll number (a pasted shortlist), not both.
+
+```json
+{ "stage": "interview", "remark": "Cleared aptitude. Slots on Friday.", "rollNumbers": ["21CS045", "21cs012"] }
+```
+
+| Field | Rule |
+|---|---|
+| stage | a stage (see 1.4) |
+| remark | optional, max 300 chars; added to every moved applicant's `stageHistory` |
+| applicationIds | 1-500 application ids |
+| rollNumbers | 1-500 roll numbers; trimmed, upper-cased, de-duplicated, blanks dropped |
+
+Applicants whose current stage can't move to `stage` are left unchanged and listed in `skipped`. Ids or roll numbers that aren't applicants of this drive are listed in `notFound`.
+
+**200**
+```json
+{
+  "stage": "interview",
+  "moved": 36,
+  "skipped": [{ "applicationId": "...", "name": "Asha Rao", "rollNumber": "21CS045", "stage": "rejected", "reason": "Rejected is a final stage" }],
+  "notFound": ["21CS999"]
+}
+```
+Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (drive), `401`, `403`.
+
 ---
 
 ## 5. Applications
@@ -631,6 +659,7 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Bulk stage moves: new #26 | Pranav |
 | 2026-10-28 | Announcements: new #23-25, drive delete removes its announcements | Pranav |
 | 2026-10-28 | Resume upload: new #19-21 `/auth/me/resume`, `User.resume`, `415 UNSUPPORTED_FILE_TYPE`; #22 officer resume view, `student.resume` in applicants | Pranav |
 | 2026-10-28 | Onboarding: `college` on register, `needsOnboarding`, new #18 `PATCH /auth/me`, drive `skills`, `matchScore`/`matchReasons`, `sort=match` | Raghav |

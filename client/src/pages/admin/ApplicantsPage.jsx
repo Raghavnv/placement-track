@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Clock, Download, FileText, Megaphone, Pencil, Search, SearchX, Users } from 'lucide-react';
+import { ArrowRight, CalendarDays, Clock, Download, FileText, ListChecks, Megaphone, Pencil, Search, SearchX, Users, X, XCircle } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Pagination from '../../components/common/Pagination';
@@ -8,6 +8,7 @@ import { CompanyAvatar, UserAvatar } from '../../components/common/Avatar';
 import { Badge, StageBadge } from '../../components/common/Badges';
 import { EmptyState, ErrorState, Skeleton } from '../../components/common/States';
 import StageControl from '../../components/admin/StageControl';
+import BulkStageDialog from '../../components/admin/BulkStageDialog';
 import { useToast } from '../../context/ToastContext';
 import useAsync from '../../hooks/useAsync';
 import useDebounce from '../../hooks/useDebounce';
@@ -15,8 +16,8 @@ import useDocumentTitle from '../../hooks/useDocumentTitle';
 import useSlashFocus from '../../hooks/useSlashFocus';
 import { getApplicants } from '../../services/driveService';
 import { getStudentResume } from '../../services/adminService';
-import { formatDate, formatDateTime, formatPackage } from '../../utils/format';
-import { STAGES, STAGE_LABELS, appliedAt } from '../../utils/stages';
+import { formatDate, formatDateTime, formatPackage, pluralize } from '../../utils/format';
+import { STAGES, STAGE_LABELS, TRANSITIONS, appliedAt, isFinal } from '../../utils/stages';
 import { downloadCsv, slugify } from '../../utils/csv';
 import { openFileInNewTab } from '../../utils/openFile';
 
@@ -39,6 +40,8 @@ export default function ApplicantsPage() {
   const search = useDebounce(searchText.trim(), 300);
   const [exporting, setExporting] = useState(false);
   const [openingResume, setOpeningResume] = useState(null);
+  const [selected, setSelected] = useState(() => new Map()); // application id -> application, kept across pages
+  const [bulk, setBulk] = useState(null); // { stage } for ticked rows, { paste: true } for roll numbers
 
   const viewResume = async (student) => {
     setOpeningResume(student._id);
@@ -77,6 +80,41 @@ export default function ApplicantsPage() {
 
   const total = data ? Object.values(data.stageCounts).reduce((sum, n) => sum + n, 0) : 0;
   const back = { to: '/admin/drives', label: 'All drives' };
+
+  // A new stage filter or search shows different people, so start the selection again.
+  useEffect(() => setSelected(new Map()), [stage, params.get('q')]);
+
+  const selectable = data?.data.filter((a) => !isFinal(a.stage)) || [];
+  const allOnPage = selectable.length > 0 && selectable.every((a) => selected.has(a._id));
+  const someOnPage = selectable.some((a) => selected.has(a._id));
+  const toggleRow = (application) =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      if (next.has(application._id)) next.delete(application._id);
+      else next.set(application._id, application);
+      return next;
+    });
+  const togglePage = () =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      selectable.forEach((a) => (allOnPage ? next.delete(a._id) : next.set(a._id, a)));
+      return next;
+    });
+
+  // Every stage at least one ticked applicant can move to, with how many can.
+  const selection = [...selected.values()];
+  const bulkTargets = STAGES.map((target) => ({ target, count: selection.filter((a) => TRANSITIONS[a.stage].includes(target)).length })).filter(
+    (t) => t.count > 0,
+  );
+
+  const finishBulk = (result) => {
+    const parts = [result.stage === 'rejected' ? `Rejected ${result.moved}` : `Moved ${result.moved} to ${STAGE_LABELS[result.stage]}`];
+    if (result.skipped.length) parts.push(`${result.skipped.length} skipped`);
+    if (result.notFound.length) parts.push(`${result.notFound.length} not found`);
+    toast.success(parts.join(' · '));
+    setSelected(new Map());
+    reload();
+  };
 
   const exportCsv = async () => {
     setExporting(true);
@@ -205,6 +243,11 @@ export default function ApplicantsPage() {
           />
           <kbd className="search-input__kbd" aria-hidden="true">/</kbd>
         </div>
+        {drive && (
+          <Button variant="secondary" icon={ListChecks} onClick={() => setBulk({ paste: true })} disabled={!total}>
+            Move by roll numbers
+          </Button>
+        )}
       </div>
 
       {error && <ErrorState error={error} onRetry={reload} />}
@@ -220,6 +263,18 @@ export default function ApplicantsPage() {
           <table className="table table--responsive">
             <thead>
               <tr>
+                <th scope="col" className="table__check">
+                  <input
+                    type="checkbox"
+                    aria-label="Select everyone on this page"
+                    checked={allOnPage}
+                    ref={(el) => {
+                      if (el) el.indeterminate = someOnPage && !allOnPage;
+                    }}
+                    onChange={togglePage}
+                    disabled={!selectable.length}
+                  />
+                </th>
                 <th scope="col">Student</th>
                 <th scope="col">Roll no.</th>
                 <th scope="col">Branch</th>
@@ -234,7 +289,17 @@ export default function ApplicantsPage() {
               {data.data.map((application) => {
                 const remark = lastRemark(application);
                 return (
-                  <tr key={application._id}>
+                  <tr key={application._id} className={selected.has(application._id) ? 'is-selected' : ''}>
+                    <td data-label="Select" className="table__check">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${application.student.name}`}
+                        checked={selected.has(application._id)}
+                        onChange={() => toggleRow(application)}
+                        disabled={isFinal(application.stage)}
+                        title={isFinal(application.stage) ? `${STAGE_LABELS[application.stage]} is final` : undefined}
+                      />
+                    </td>
                     <td data-label="Student">
                       <div className="table__entity">
                         <UserAvatar name={application.student.name} />
@@ -297,6 +362,39 @@ export default function ApplicantsPage() {
             />
           </div>
         )
+      )}
+
+      {selected.size > 0 && (
+        <div className="bulk-bar" role="region" aria-label="Bulk actions">
+          <span className="bulk-bar__count">
+            <strong>{selected.size}</strong> selected
+          </span>
+          {bulkTargets.map(({ target, count }) =>
+            target === 'rejected' ? (
+              <Button key={target} size="sm" variant="ghost-on-ink" icon={XCircle} onClick={() => setBulk({ stage: target })}>
+                Reject {count}
+              </Button>
+            ) : (
+              <Button key={target} size="sm" variant="lime" iconRight={ArrowRight} onClick={() => setBulk({ stage: target })}>
+                Move {count} to {STAGE_LABELS[target]}
+              </Button>
+            ),
+          )}
+          <Button size="sm" variant="ghost-on-ink" icon={X} onClick={() => setSelected(new Map())}>
+            Clear
+          </Button>
+        </div>
+      )}
+
+      {bulk && (
+        <BulkStageDialog
+          open
+          driveId={id}
+          selection={bulk.paste ? null : selection}
+          stage={bulk.stage}
+          onClose={() => setBulk(null)}
+          onDone={finishBulk}
+        />
       )}
 
       {data && (

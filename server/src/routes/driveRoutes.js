@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const drives = require('../controllers/driveController');
+const applications = require('../controllers/applicationController');
+const { bulkStageUpdate } = require('../validators/applicationSchemas');
 const schemas = require('../validators/driveSchemas');
 const { validate, validateObjectId } = require('../middleware/validate');
 const { protect, requireRole } = require('../middleware/auth');
@@ -25,6 +27,14 @@ router.get(
   requireRole('admin'),
   validate(schemas.applicantsQuery, 'query'),
   drives.getApplicants,
+);
+
+router.post(
+  '/:id/applicants/stage',
+  validateObjectId(),
+  requireRole('admin'),
+  validate(bulkStageUpdate),
+  applications.bulkUpdateStage,
 );
 
 module.exports = router;

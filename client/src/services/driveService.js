@@ -12,3 +12,6 @@ export const deleteDrive = (id) => api.delete(`/drives/${id}`).then((r) => r.dat
 export const applyToDrive = (id) => api.post(`/drives/${id}/apply`).then((r) => r.data.application);
 export const getApplicants = (id, params) =>
   api.get(`/drives/${id}/applicants`, { params: clean(params) }).then((r) => r.data);
+
+// Body: { stage, remark, applicationIds } or { stage, remark, rollNumbers }. Returns { stage, moved, skipped, notFound }.
+export const bulkMoveApplicants = (id, body) => api.post(`/drives/${id}/applicants/stage`, body).then((r) => r.data);

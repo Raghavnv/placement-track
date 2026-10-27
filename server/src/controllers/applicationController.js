@@ -6,6 +6,7 @@ const { buildCalendar } = require('../utils/ics');
 const { DRIVE_SUMMARY_FIELDS } = require('../utils/constants');
 const Application = require('../models/Application');
 const Drive = require('../models/Drive');
+const User = require('../models/User');
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -72,6 +73,48 @@ exports.updateStage = asyncHandler(async (req, res) => {
   ]);
 
   res.json({ application: withoutNotes(application) });
+});
+
+function skipReason(current, target) {
+  if (current === target) return `Already at ${STAGE_LABELS[target]}`;
+  if (!TRANSITIONS[current].length) return `${STAGE_LABELS[current]} is a final stage`;
+  return `Can't move from ${STAGE_LABELS[current]} to ${STAGE_LABELS[target]}`;
+}
+
+exports.bulkUpdateStage = asyncHandler(async (req, res) => {
+  const { stage, remark, applicationIds, rollNumbers } = req.body;
+  if (!(await Drive.exists({ _id: req.params.id }))) throw new ApiError(404, 'NOT_FOUND', 'Drive not found');
+
+  const match = { drive: req.params.id };
+  if (applicationIds) match._id = { $in: applicationIds };
+  else match.student = { $in: await User.find({ role: 'student', rollNumber: { $in: rollNumbers } }).distinct('_id') };
+
+  const applications = await Application.find(match).select('stage student').populate('student', 'name rollNumber').lean();
+
+  const found = new Set(applications.map((a) => (applicationIds ? a._id.toString() : a.student.rollNumber)));
+  const notFound = (applicationIds || rollNumbers).filter((key) => !found.has(key));
+
+  const fromStages = Object.keys(TRANSITIONS).filter((from) => canTransition(from, stage));
+  const movable = applications.filter((a) => fromStages.includes(a.stage));
+  const skipped = applications
+    .filter((a) => !fromStages.includes(a.stage))
+    .map((a) => ({
+      applicationId: a._id,
+      name: a.student.name,
+      rollNumber: a.student.rollNumber,
+      stage: a.stage,
+      reason: skipReason(a.stage, stage),
+    }));
+
+  // The stage condition is repeated in the update so a concurrent move can't be applied twice.
+  const { modifiedCount } = movable.length
+    ? await Application.updateMany(
+      { _id: { $in: movable.map((a) => a._id) }, stage: { $in: fromStages } },
+      { $set: { stage }, $push: { stageHistory: { stage, remark, changedBy: req.user._id, changedAt: new Date() } } },
+    )
+    : { modifiedCount: 0 };
+
+  res.json({ stage, moved: modifiedCount, skipped, notFound });
 });
 
 exports.updateNotes = asyncHandler(async (req, res) => {

@@ -8,7 +8,7 @@ import { useToast } from '../../context/ToastContext';
 import { updateStage } from '../../services/applicationService';
 import { STAGE_LABELS, TRANSITIONS } from '../../utils/stages';
 
-const REMARK_PLACEHOLDER = {
+export const REMARK_PLACEHOLDER = {
   aptitude: 'e.g. Online test on 5 Nov, 10 AM. Link will be emailed.',
   interview: 'e.g. Cleared aptitude. Interview slot will be shared by email.',
   offer: 'e.g. Selected! Offer letter sent to your registered email.',
