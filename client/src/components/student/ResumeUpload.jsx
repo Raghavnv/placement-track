@@ -5,6 +5,7 @@ import { InlineAlert } from '../common/States';
 import { useToast } from '../../context/ToastContext';
 import { deleteResume, getResumeFile, uploadResume } from '../../services/profileService';
 import { formatDate } from '../../utils/format';
+import { openFileInNewTab } from '../../utils/openFile';
 
 const MAX_BYTES = 2 * 1024 * 1024; // matches server/src/utils/resume.js
 const ACCEPT = '.pdf,.jpg,.jpeg,application/pdf,image/jpeg';
@@ -48,16 +49,10 @@ export default function ResumeUpload({ resume, onChange }) {
   };
 
   const view = async () => {
-    // Open the tab now, while we still have the click; popup blockers stop it after an await.
-    const tab = window.open('', '_blank');
     setBusy('view');
     try {
-      const url = URL.createObjectURL(await getResumeFile());
-      if (tab) tab.location.href = url;
-      else window.location.assign(url);
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      await openFileInNewTab(getResumeFile);
     } catch (err) {
-      tab?.close();
       toast.error(err.message);
     } finally {
       setBusy('');

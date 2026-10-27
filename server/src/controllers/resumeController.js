@@ -2,6 +2,18 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { detectResumeType, resumeFileName } = require('../utils/resume');
 const Resume = require('../models/Resume');
+const User = require('../models/User');
+
+async function sendResume(res, student, missingMessage) {
+  const resume = student?.resume && (await Resume.findOne({ student: student._id }));
+  if (!resume) throw new ApiError(404, 'NOT_FOUND', missingMessage);
+
+  res.set({
+    'Content-Type': student.resume.mimeType,
+    'Content-Disposition': `inline; filename="${student.resume.fileName}"`,
+  });
+  res.send(resume.data);
+}
 
 exports.uploadResume = asyncHandler(async (req, res) => {
   const file = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
@@ -22,14 +34,13 @@ exports.uploadResume = asyncHandler(async (req, res) => {
 });
 
 exports.downloadResume = asyncHandler(async (req, res) => {
-  const resume = req.user.resume && (await Resume.findOne({ student: req.user._id }));
-  if (!resume) throw new ApiError(404, 'NOT_FOUND', "You haven't uploaded a resume yet");
+  await sendResume(res, req.user, "You haven't uploaded a resume yet");
+});
 
-  res.set({
-    'Content-Type': req.user.resume.mimeType,
-    'Content-Disposition': `inline; filename="${req.user.resume.fileName}"`,
-  });
-  res.send(resume.data);
+// Officer view of any student's resume.
+exports.downloadStudentResume = asyncHandler(async (req, res) => {
+  const student = await User.findOne({ _id: req.params.id, role: 'student' }).select('resume').lean();
+  await sendResume(res, student, "This student hasn't uploaded a resume");
 });
 
 exports.deleteResume = asyncHandler(async (req, res) => {

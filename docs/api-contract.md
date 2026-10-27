@@ -220,6 +220,7 @@ For students, list and detail responses also include:
 | 19 | PUT | `/api/auth/me/resume` | Student | Upload or replace resume (PDF/JPG, max 2 MB) |
 | 20 | GET | `/api/auth/me/resume` | Student | Download own resume |
 | 21 | DELETE | `/api/auth/me/resume` | Student | Remove own resume |
+| 22 | GET | `/api/admin/students/:id/resume` | Admin | Open a student's resume |
 
 ---
 
@@ -329,6 +330,10 @@ Errors: `404 NOT_FOUND` (nothing uploaded), `401`, `403`.
 
 ### 21. `DELETE /api/auth/me/resume`  (Student)
 **200** `{ "user": { /* User, without resume */ } }`. Succeeds even if there was no resume.
+
+### 22. `GET /api/admin/students/:id/resume`  (Admin)
+Same response as #20, for any student. Applicant rows from #10 include `student.resume` (`{ fileName, mimeType, size, uploadedAt }`, missing when none), so the officer UI only shows *View* for students who uploaded one.
+Errors: `400 INVALID_ID`, `404 NOT_FOUND` (no such student, or no resume), `401`, `403` (student token).
 
 ---
 
@@ -574,6 +579,6 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
-| 2026-10-28 | Resume upload: new #19-21 `/auth/me/resume`, `User.resume`, `415 UNSUPPORTED_FILE_TYPE` | Pranav |
+| 2026-10-28 | Resume upload: new #19-21 `/auth/me/resume`, `User.resume`, `415 UNSUPPORTED_FILE_TYPE`; #22 officer resume view, `student.resume` in applicants | Pranav |
 | 2026-10-28 | Onboarding: `college` on register, `needsOnboarding`, new #18 `PATCH /auth/me`, drive `skills`, `matchScore`/`matchReasons`, `sort=match` | Raghav |
 | 2026-10-27 | Backend implemented. Added `ROLL_NUMBER_TAKEN`, `413`, `429`; students' default drive list hides past deadlines; `eligibilityChecks` on drive details; `stageHistory` in applicants; `funnel` in stats; new #17 calendar export; dev port 5050 | Raghav |

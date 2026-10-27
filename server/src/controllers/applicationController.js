@@ -9,7 +9,7 @@ const Drive = require('../models/Drive');
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
-const STUDENT_SUMMARY_FIELDS = 'name email rollNumber branch cgpa backlogs graduationYear phone';
+const STUDENT_SUMMARY_FIELDS = 'name email rollNumber branch cgpa backlogs graduationYear phone resume';
 
 const notFound = () => new ApiError(404, 'NOT_FOUND', 'Application not found');
 

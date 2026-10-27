@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Clock, Download, Pencil, Search, SearchX, Users } from 'lucide-react';
+import { CalendarDays, Clock, Download, FileText, Pencil, Search, SearchX, Users } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Pagination from '../../components/common/Pagination';
@@ -14,9 +14,11 @@ import useDebounce from '../../hooks/useDebounce';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import useSlashFocus from '../../hooks/useSlashFocus';
 import { getApplicants } from '../../services/driveService';
+import { getStudentResume } from '../../services/adminService';
 import { formatDate, formatDateTime, formatPackage } from '../../utils/format';
 import { STAGES, STAGE_LABELS, appliedAt } from '../../utils/stages';
 import { downloadCsv, slugify } from '../../utils/csv';
+import { openFileInNewTab } from '../../utils/openFile';
 
 const PAGE_SIZE = 10;
 
@@ -36,6 +38,18 @@ export default function ApplicantsPage() {
   const [searchText, setSearchText] = useState(params.get('q') || '');
   const search = useDebounce(searchText.trim(), 300);
   const [exporting, setExporting] = useState(false);
+  const [openingResume, setOpeningResume] = useState(null);
+
+  const viewResume = async (student) => {
+    setOpeningResume(student._id);
+    try {
+      await openFileInNewTab(() => getStudentResume(student._id));
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setOpeningResume(null);
+    }
+  };
 
   const setParam = (key, value) =>
     setParams(
@@ -208,6 +222,7 @@ export default function ApplicantsPage() {
                 <th scope="col">Branch</th>
                 <th scope="col">CGPA</th>
                 <th scope="col">Applied</th>
+                <th scope="col">Resume</th>
                 <th scope="col">Stage</th>
                 <th scope="col">Move to</th>
               </tr>
@@ -230,6 +245,22 @@ export default function ApplicantsPage() {
                     <td data-label="Branch">{application.student.branch}</td>
                     <td data-label="CGPA" className="table__num">{application.student.cgpa}</td>
                     <td data-label="Applied">{formatDate(appliedAt(application))}</td>
+                    <td data-label="Resume">
+                      {application.student.resume ? (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          icon={FileText}
+                          onClick={() => viewResume(application.student)}
+                          loading={openingResume === application.student._id}
+                          title={application.student.resume.fileName}
+                        >
+                          View
+                        </Button>
+                      ) : (
+                        <span className="muted">Not uploaded</span>
+                      )}
+                    </td>
                     <td data-label="Stage">
                       <div className="table__stack">
                         <StageBadge stage={application.stage} size="sm" />

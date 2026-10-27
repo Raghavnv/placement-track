@@ -2,7 +2,7 @@ const request = require('supertest');
 const app = require('../app');
 const Resume = require('../models/Resume');
 const { RESUME_MAX_BYTES } = require('../utils/resume');
-const { createStudent, createAdmin, bearer } = require('./setup/factories');
+const { createStudent, createAdmin, createDrive, createApplication, bearer } = require('./setup/factories');
 
 const PDF = Buffer.from('%PDF-1.7\n1 0 obj\n<<>>\nendobj\n%%EOF\n', 'latin1');
 const JPG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00]);
@@ -122,5 +122,60 @@ describe('DELETE /api/auth/me/resume', () => {
     expect(res.status).toBe(200);
     expect(res.body.user.resume).toBeUndefined();
     expect(await Resume.countDocuments()).toBe(0);
+  });
+});
+
+describe('GET /api/admin/students/:id/resume', () => {
+  const readBody = (r, cb) => {
+    const chunks = [];
+    r.on('data', (c) => chunks.push(c));
+    r.on('end', () => cb(null, Buffer.concat(chunks)));
+  };
+
+  it("lets an officer open a student's resume", async () => {
+    const [admin, student] = await Promise.all([createAdmin(), createStudent()]);
+    await upload(student, PDF, { name: 'cv.pdf' });
+
+    const res = await request(app).get(`/api/admin/students/${student._id}/resume`).set(bearer(admin)).buffer(true).parse(readBody);
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toBe('application/pdf');
+    expect(res.headers['content-disposition']).toBe('inline; filename="cv.pdf"');
+    expect(res.body.equals(PDF)).toBe(true);
+  });
+
+  it('returns 404 when the student has no resume', async () => {
+    const [admin, student] = await Promise.all([createAdmin(), createStudent()]);
+    const res = await request(app).get(`/api/admin/students/${student._id}/resume`).set(bearer(admin));
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it("does not let students open each other's resumes", async () => {
+    const [owner, other] = await Promise.all([createStudent(), createStudent()]);
+    await upload(owner, PDF);
+    const res = await request(app).get(`/api/admin/students/${owner._id}/resume`).set(bearer(other));
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects an invalid id', async () => {
+    const admin = await createAdmin();
+    const res = await request(app).get('/api/admin/students/not-an-id/resume').set(bearer(admin));
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_ID');
+  });
+
+  it('includes resume details in the applicants list', async () => {
+    const admin = await createAdmin();
+    const [withResume, without] = await Promise.all([createStudent(), createStudent()]);
+    const drive = await createDrive(admin);
+    await Promise.all([createApplication(withResume, drive), createApplication(without, drive)]);
+    await upload(withResume, PDF, { name: 'cv.pdf' });
+
+    const res = await request(app).get(`/api/drives/${drive._id}/applicants`).set(bearer(admin));
+    const byId = Object.fromEntries(res.body.data.map((a) => [a.student._id, a.student]));
+
+    expect(byId[withResume._id].resume).toMatchObject({ fileName: 'cv.pdf', mimeType: 'application/pdf' });
+    expect(byId[without._id].resume).toBeUndefined();
   });
 });

@@ -164,7 +164,7 @@ exports.getApplicants = asyncHandler(async (req, res) => {
     Application.countDocuments(match),
     Application.find(match)
       .select('student stage stageHistory createdAt updatedAt') // never notes: they are private to the student
-      .populate('student', 'name email rollNumber branch cgpa backlogs graduationYear phone')
+      .populate('student', 'name email rollNumber branch cgpa backlogs graduationYear phone resume')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
