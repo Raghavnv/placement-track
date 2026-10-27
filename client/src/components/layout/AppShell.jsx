@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Briefcase,
+  GraduationCap,
   KanbanSquare,
   LayoutDashboard,
   LogOut,
@@ -27,6 +28,7 @@ const NAV = {
     { to: '/admin', label: 'Dashboard', icon: BarChart3, end: true },
     { to: '/admin/drives', label: 'Drives', icon: Briefcase, exclude: '/admin/drives/new' },
     { to: '/admin/drives/new', label: 'New drive', icon: PlusCircle },
+    { to: '/admin/students', label: 'Students', icon: GraduationCap },
     { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   ],
 };

@@ -5,3 +5,8 @@ export const getStats = (params) =>
 
 export const getStudentResume = (studentId) =>
   api.get(`/admin/students/${studentId}/resume`, { responseType: 'blob' }).then((r) => r.data);
+
+export const listStudents = (params = {}) =>
+  api.get('/admin/students', { params: Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== undefined)) }).then((r) => r.data);
+
+export const getStudent = (id) => api.get(`/admin/students/${id}`).then((r) => r.data);

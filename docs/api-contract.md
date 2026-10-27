@@ -225,6 +225,9 @@ For students, list and detail responses also include:
 | 24 | POST | `/api/announcements` | Admin | Post an announcement |
 | 25 | DELETE | `/api/announcements/:id` | Admin | Delete an announcement |
 | 26 | POST | `/api/drives/:id/applicants/stage` | Admin | Move many applicants at once (by id or roll number) |
+| 27 | POST | `/api/drives/:id/applicants/resumes` | Admin | ZIP of applicants' resumes |
+| 28 | GET | `/api/admin/students` | Admin | Students directory (filters, season summary) |
+| 29 | GET | `/api/admin/students/:id` | Admin | One student's profile and applications |
 
 ---
 
@@ -533,6 +536,18 @@ Applicants whose current stage can't move to `stage` are left unchanged and list
 ```
 Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (drive), `401`, `403`.
 
+### 27. `POST /api/drives/:id/applicants/resumes`  (Admin)
+Downloads one ZIP of resumes for sending to the company. Body picks who:
+
+| Body | Who |
+|---|---|
+| `{}` | every applicant of the drive |
+| `{ "stage": "interview" }` | applicants currently at that stage |
+| `{ "applicationIds": ["..."] }` | those applications (1-500) |
+
+**200** `application/zip`, `Content-Disposition: attachment; filename="<Company>_<Role>_resumes.zip"`. Files are named `<rollNumber>_<Name>.pdf|jpg`. If some picked applicants have no resume, the ZIP also has `no-resume.txt` listing them. Headers `X-Resume-Count` and `X-Missing-Resume-Count` give the two numbers (exposed to the browser via CORS).
+Errors: `400 VALIDATION_ERROR` (ids and stage together), `404 NOT_FOUND` (drive, or nobody picked has a resume), `401`, `403`.
+
 ---
 
 ## 5. Applications
@@ -652,6 +667,41 @@ Query: `graduationYear` (optional filter).
 
 Errors: `401`, `403`.
 
+### 28. `GET /api/admin/students`  (Admin)
+Every registered student with how they're doing this season.
+
+| Param | Description |
+|---|---|
+| search | name, roll number or email (case-insensitive) |
+| branch | branch code |
+| graduationYear | batch |
+| minCgpa | CGPA at least this |
+| status | `placed` (has an offer) or `unplaced` |
+| resume | `yes` or `no` |
+| sort | `rollNumber` (default), `name`, `-cgpa`, `-createdAt` |
+| page, limit | pagination (limit max 50) |
+
+**200**
+```json
+{
+  "data": [
+    {
+      "_id": "...", "name": "Asha Rao", "email": "asha@college.edu", "rollNumber": "21CS045", "branch": "CSE",
+      "cgpa": 8.4, "backlogs": 0, "graduationYear": 2027, "phone": "9876543210", "college": "RV College of Engineering",
+      "resume": { "fileName": "cv.pdf", "mimeType": "application/pdf", "size": 120000, "uploadedAt": "..." },
+      "applicationCount": 4, "activeCount": 2, "offerCount": 1, "bestOffer": 7.6
+    }
+  ],
+  "counts": { "all": 12, "placed": 6, "unplaced": 6, "noResume": 9 },
+  "pagination": { "page": 1, "limit": 15, "total": 12, "totalPages": 1 }
+}
+```
+`counts` apply every filter except `status` and `resume`, so they can label those tabs. `bestOffer` is the highest offer package (LPA) or `null`.
+
+### 29. `GET /api/admin/students/:id`  (Admin)
+**200** `{ "student": { /* User */ }, "applications": [ /* with drive summary and stageHistory; never notes */ ] }`, newest application first.
+Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, `403`.
+
 ---
 
 ## 7. Changelog
@@ -659,6 +709,7 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Resume ZIP (#27) and students directory (#28-29) | Pranav |
 | 2026-10-28 | Bulk stage moves: new #26 | Pranav |
 | 2026-10-28 | Announcements: new #23-25, drive delete removes its announcements | Pranav |
 | 2026-10-28 | Resume upload: new #19-21 `/auth/me/resume`, `User.resume`, `415 UNSUPPORTED_FILE_TYPE`; #22 officer resume view, `student.resume` in applicants | Pranav |

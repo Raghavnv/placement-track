@@ -120,7 +120,8 @@
 .toolbar__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .toolbar--inline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; }
 .toolbar--inline .search-input { flex: 1 1 260px; }
-@media (min-width: 960px) { .toolbar:not(.toolbar--inline) { grid-template-columns: minmax(240px, 1fr) auto; align-items: center; } }
+@media (min-width: 960px) { .toolbar:not(.toolbar--inline):not(.toolbar--stack) { grid-template-columns: minmax(240px, 1fr) auto; align-items: center; } }
+.toolbar--stack .search-input { flex: 1 1 260px; }
 .search-input { position: relative; display: flex; align-items: center; }
 .search-input > svg { position: absolute; left: 14px; color: var(--color-text-subtle); pointer-events: none; }
 .search-input .input { padding-left: 42px; padding-right: 42px; border-color: transparent; background: var(--color-surface-muted); }
@@ -427,3 +428,10 @@
 @media (max-width: 899px) {
   .table--responsive td.table__check { width: 100%; }
 }
+
+/* ===== Students directory ===== */
+.toolbar__spacer { flex: 1; }
+.table__entity--button { width: 100%; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.table__entity--button:hover strong { text-decoration: underline; text-decoration-color: var(--color-lime-strong); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.student-apps li { padding: var(--space-2) 0; }
+.student-apps__arrow { flex-shrink: 0; color: var(--color-text-subtle); }
