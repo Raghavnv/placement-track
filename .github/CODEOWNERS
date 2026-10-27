@@ -1,0 +1,10 @@
+# Default reviewers requested automatically on PRs touching these paths.
+/server/                       @Raghavnv
+/docs/                         @Raghavnv
+/client/src/pages/student/     @Puneethbin
+/client/src/components/student/ @Puneethbin
+/client/src/pages/admin/       @pranavmohan10-kaizen
+/client/src/components/admin/  @pranavmohan10-kaizen
+/client/src/components/layout/ @pranavmohan10-kaizen
+/client/src/context/           @pranavmohan10-kaizen
+/client/src/styles/            @Puneethbin @pranavmohan10-kaizen

@@ -1,0 +1,520 @@
+{
+  "info": {
+    "name": "PlacementTrack API",
+    "description": "See docs/api-contract.md. Login or Register saves the JWT into {{token}} automatically. Log in as admin to call admin routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "driveId",
+      "value": ""
+    },
+    {
+      "key": "applicationId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "Auth / Register (student)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Asha Rao\",\n  \"email\": \"asha@college.edu\",\n  \"password\": \"Str0ngPass!\",\n  \"rollNumber\": \"21CS045\",\n  \"branch\": \"CSE\",\n  \"cgpa\": 8.4,\n  \"backlogs\": 0,\n  \"graduationYear\": 2027,\n  \"phone\": \"9876543210\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.token) pm.collectionVariables.set(\"token\", json.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth / Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"asha@college.edu\",\n  \"password\": \"Str0ngPass!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.token) pm.collectionVariables.set(\"token\", json.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth / Me",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Drives / List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drives?status=open&search=&eligibleOnly=true&sort=deadline&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drives"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "open"
+            },
+            {
+              "key": "search",
+              "value": ""
+            },
+            {
+              "key": "eligibleOnly",
+              "value": "true"
+            },
+            {
+              "key": "sort",
+              "value": "deadline"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Drives / Get one",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drives/{{driveId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drives",
+            "{{driveId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Drives / Create (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drives",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drives"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"companyName\": \"Infosys\",\n  \"role\": \"Systems Engineer\",\n  \"description\": \"Full-time role in Bengaluru.\",\n  \"package\": 6.5,\n  \"location\": \"Bengaluru\",\n  \"jobType\": \"full-time\",\n  \"eligibility\": {\n    \"minCgpa\": 7,\n    \"branches\": [\n      \"CSE\",\n      \"ISE\"\n    ],\n    \"graduationYear\": 2027,\n    \"maxBacklogs\": 0\n  },\n  \"deadline\": \"2026-11-15T18:29:59.000Z\",\n  \"driveDate\": \"2026-11-20T04:30:00.000Z\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Drives / Update (admin)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drives/{{driveId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drives",
+            "{{driveId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deadline\": \"2026-11-18T18:29:59.000Z\",\n  \"status\": \"open\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Drives / Delete (admin)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drives/{{driveId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drives",
+            "{{driveId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Drives / Apply (student)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drives/{{driveId}}/apply",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drives",
+            "{{driveId}}",
+            "apply"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Drives / Applicants (admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drives/{{driveId}}/applicants?stage=&search=&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drives",
+            "{{driveId}}",
+            "applicants"
+          ],
+          "query": [
+            {
+              "key": "stage",
+              "value": ""
+            },
+            {
+              "key": "search",
+              "value": ""
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Applications / Mine (student)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/applications/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "applications",
+            "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Applications / Reminders (student)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/applications/me/reminders?days=7",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "applications",
+            "me",
+            "reminders"
+          ],
+          "query": [
+            {
+              "key": "days",
+              "value": "7"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Applications / Get one",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/applications/{{applicationId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "applications",
+            "{{applicationId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Applications / Update stage (admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/applications/{{applicationId}}/stage",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "applications",
+            "{{applicationId}}",
+            "stage"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stage\": \"aptitude\",\n  \"remark\": \"Online test on 5 Nov\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Applications / Update notes (student)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/applications/{{applicationId}}/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "applications",
+            "{{applicationId}}",
+            "notes"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"notes\": \"Revise DBMS normalisation and OS scheduling.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Admin / Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/stats",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "stats"
+          ]
+        }
+      }
+    }
+  ]
+}
