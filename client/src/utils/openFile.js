@@ -12,3 +12,15 @@ export async function openFileInNewTab(fetchBlob) {
     throw err;
   }
 }
+
+// Saves a downloaded blob under the given file name.
+export function saveFile(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}

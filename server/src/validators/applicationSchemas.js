@@ -30,6 +30,18 @@ const bulkStageUpdate = stageUpdate
     message: 'Send either applicationIds or rollNumbers',
   });
 
+// Which applicants' resumes to zip: ticked rows, everyone at a stage, or (neither) every applicant.
+const resumeZip = z
+  .object({
+    applicationIds: z
+      .array(z.string().refine((v) => mongoose.isValidObjectId(v), 'Invalid application id'))
+      .min(1, 'Select at least one applicant')
+      .max(MAX_BULK, `Download up to ${MAX_BULK} resumes at a time`)
+      .optional(),
+    stage: z.enum(STAGES, { errorMap: () => ({ message: `Stage must be one of ${STAGES.join(', ')}` }) }).optional(),
+  })
+  .refine((body) => !(body.applicationIds && body.stage), { path: ['stage'], message: 'Send applicationIds or stage, not both' });
+
 const notesUpdate = z.object({
   notes: z.string({ required_error: 'Notes are required (send an empty string to clear)' }).max(5000, 'Notes must be at most 5000 characters'),
 });
@@ -42,4 +54,4 @@ const statsQuery = z.object({
   graduationYear: optionalQuery(z.coerce.number().int().min(2020).max(2035)),
 });
 
-module.exports = { stageUpdate, bulkStageUpdate, notesUpdate, remindersQuery, statsQuery };
+module.exports = { stageUpdate, bulkStageUpdate, resumeZip, notesUpdate, remindersQuery, statsQuery };

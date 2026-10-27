@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Clock, Download, FileText, ListChecks, Megaphone, Pencil, Search, SearchX, Users, X, XCircle } from 'lucide-react';
+import { ArrowRight, CalendarDays, Clock, Download, FileArchive, FileText, ListChecks, Megaphone, Pencil, Search, SearchX, Users, X, XCircle } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Pagination from '../../components/common/Pagination';
@@ -14,12 +14,12 @@ import useAsync from '../../hooks/useAsync';
 import useDebounce from '../../hooks/useDebounce';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import useSlashFocus from '../../hooks/useSlashFocus';
-import { getApplicants } from '../../services/driveService';
+import { downloadResumesZip, getApplicants } from '../../services/driveService';
 import { getStudentResume } from '../../services/adminService';
 import { formatDate, formatDateTime, formatPackage, pluralize } from '../../utils/format';
 import { STAGES, STAGE_LABELS, TRANSITIONS, appliedAt, isFinal } from '../../utils/stages';
 import { downloadCsv, slugify } from '../../utils/csv';
-import { openFileInNewTab } from '../../utils/openFile';
+import { openFileInNewTab, saveFile } from '../../utils/openFile';
 
 const PAGE_SIZE = 10;
 
@@ -42,6 +42,25 @@ export default function ApplicantsPage() {
   const [openingResume, setOpeningResume] = useState(null);
   const [selected, setSelected] = useState(() => new Map()); // application id -> application, kept across pages
   const [bulk, setBulk] = useState(null); // { stage } for ticked rows, { paste: true } for roll numbers
+  const [zipping, setZipping] = useState(''); // 'stage' or 'selection' while a resume ZIP downloads
+
+  const downloadResumes = async (source) => {
+    setZipping(source);
+    try {
+      const body = source === 'selection' ? { applicationIds: [...selected.keys()] } : stage ? { stage } : {};
+      const { blob, filename, included, missing } = await downloadResumesZip(id, body);
+      saveFile(blob, filename);
+      toast.success(
+        missing
+          ? `Downloaded ${pluralize(included, 'resume')} · ${missing} without one (listed in no-resume.txt)`
+          : `Downloaded ${pluralize(included, 'resume')}`,
+      );
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setZipping('');
+    }
+  };
 
   const viewResume = async (student) => {
     setOpeningResume(student._id);
@@ -244,9 +263,21 @@ export default function ApplicantsPage() {
           <kbd className="search-input__kbd" aria-hidden="true">/</kbd>
         </div>
         {drive && (
-          <Button variant="secondary" icon={ListChecks} onClick={() => setBulk({ paste: true })} disabled={!total}>
-            Move by roll numbers
-          </Button>
+          <div className="toolbar__row">
+            <Button
+              variant="secondary"
+              icon={FileArchive}
+              onClick={() => downloadResumes('stage')}
+              loading={zipping === 'stage'}
+              disabled={!total || Boolean(stage && !data?.stageCounts[stage])}
+              title={stage ? `ZIP of resumes of everyone at ${STAGE_LABELS[stage]}` : 'ZIP of every applicant\'s resume'}
+            >
+              {stage ? `${STAGE_LABELS[stage]} resumes` : 'All resumes'}
+            </Button>
+            <Button variant="secondary" icon={ListChecks} onClick={() => setBulk({ paste: true })} disabled={!total}>
+              Move by roll numbers
+            </Button>
+          </div>
         )}
       </div>
 
@@ -380,6 +411,9 @@ export default function ApplicantsPage() {
               </Button>
             ),
           )}
+          <Button size="sm" variant="ghost-on-ink" icon={FileArchive} onClick={() => downloadResumes('selection')} loading={zipping === 'selection'}>
+            Resumes
+          </Button>
           <Button size="sm" variant="ghost-on-ink" icon={X} onClick={() => setSelected(new Map())}>
             Clear
           </Button>
