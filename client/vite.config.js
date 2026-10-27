@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     // Lets the client call /api/... without CORS issues during development.
     proxy: {
-      '/api': 'http://localhost:5000',
+      '/api': 'http://localhost:5050',
     },
   },
 });

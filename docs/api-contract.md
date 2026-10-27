@@ -2,7 +2,7 @@
 
 This is the agreement between the backend (`feature/backend-api`) and both UIs (`feature/student-ui`, `feature/admin-ui`). Frontend work can start right away by mocking these responses. **If you need to change anything here, change this file in the same PR and tell the team.**
 
-- **Base URL (dev):** `http://localhost:5000/api` (the client calls `/api/...`; Vite proxies it)
+- **Base URL (dev):** `http://localhost:5050/api` (the client calls `/api/...`; Vite proxies it)
 - **Format:** JSON in, JSON out. Send `Content-Type: application/json`.
 - **Dates:** ISO 8601 strings in UTC, e.g. `"2026-11-15T18:29:59.000Z"`.
 - **IDs:** MongoDB ObjectId strings (24 hex chars).

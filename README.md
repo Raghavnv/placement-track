@@ -60,7 +60,7 @@ cd placement-track
 cd server
 cp .env.example .env          # then edit MONGO_URI and JWT_SECRET
 npm install
-npm run dev                   # http://localhost:5000/api/health -> {"status":"ok"}
+npm run dev                   # http://localhost:5050/api/health -> {"status":"ok"}
 
 # Client (new terminal)
 cd client
@@ -76,7 +76,7 @@ npm run dev                   # http://localhost:5173
 | server | `npm run dev` | Start API with auto-reload (nodemon) |
 | server | `npm start` | Start API |
 | server | `npm test` | Run Jest + Supertest tests |
-| client | `npm run dev` | Start Vite dev server (proxies `/api` to `:5000`) |
+| client | `npm run dev` | Start Vite dev server (proxies `/api` to `:5050`) |
 | client | `npm run build` | Production build to `client/dist` |
 
 ## Project structure

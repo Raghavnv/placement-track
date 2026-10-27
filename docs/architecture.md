@@ -23,10 +23,10 @@
 │  - Admin pages           │  Bearer <JWT>     │  controllers → models       │ ◀─────────────── │  drives    │
 │  - AuthContext + axios   │ ◀───────────────  │  central error handler      │                  │  applica-  │
 └──────────────────────────┘                   └─────────────────────────────┘                  │  tions     │
-       :5173 (dev)                                     :5000                                    └────────────┘
+       :5173 (dev)                                     :5050                                    └────────────┘
 ```
 
-In development, Vite proxies `/api/*` to `http://localhost:5000`, so the client always calls relative `/api/...` URLs.
+In development, Vite proxies `/api/*` to `http://localhost:5050`, so the client always calls relative `/api/...` URLs.
 
 ## 3. Folder layout
 
@@ -34,7 +34,7 @@ In development, Vite proxies `/api/*` to `http://localhost:5000`, so the client 
 placement-track/
 ├── client/                         # React (Vite) app
 │   ├── index.html
-│   ├── vite.config.js              # dev proxy /api -> :5000
+│   ├── vite.config.js              # dev proxy /api -> :5050
 │   └── src/
 │       ├── main.jsx                # entry; imports tokens.css + global.css
 │       ├── App.jsx                 # router (admin-ui owns)
