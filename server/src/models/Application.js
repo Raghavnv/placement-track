@@ -35,4 +35,13 @@ applicationSchema.index({ student: 1, drive: 1 }, { unique: true });
 applicationSchema.index({ drive: 1, stage: 1 });
 applicationSchema.index({ student: 1, updatedAt: -1 });
 
+// Map of driveId -> number of applications, for list views.
+applicationSchema.statics.countByDrive = async function countByDrive(driveIds) {
+  const rows = await this.aggregate([
+    { $match: { drive: { $in: driveIds } } },
+    { $group: { _id: '$drive', count: { $sum: 1 } } },
+  ]);
+  return new Map(rows.map((row) => [row._id.toString(), row.count]));
+};
+
 module.exports = mongoose.model('Application', applicationSchema);

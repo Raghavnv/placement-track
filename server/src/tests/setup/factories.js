@@ -8,12 +8,13 @@ let counter = 0;
 
 async function createStudent(overrides = {}) {
   counter += 1;
+  const n = counter; // capture before awaiting so parallel calls get unique values
   return User.create({
-    name: `Student ${counter}`,
-    email: `student${counter}@college.edu`,
+    name: `Student ${n}`,
+    email: `student${n}@college.edu`,
     passwordHash: await User.hashPassword('Str0ngPass!'),
     role: 'student',
-    rollNumber: `21CS${String(counter).padStart(3, '0')}`,
+    rollNumber: `21CS${String(n).padStart(3, '0')}`,
     branch: 'CSE',
     cgpa: 8,
     backlogs: 0,
@@ -24,9 +25,10 @@ async function createStudent(overrides = {}) {
 
 async function createAdmin(overrides = {}) {
   counter += 1;
+  const n = counter;
   return User.create({
     name: 'Placement Officer',
-    email: `officer${counter}@college.edu`,
+    email: `officer${n}@college.edu`,
     passwordHash: await User.hashPassword('Str0ngPass!'),
     role: 'admin',
     ...overrides,

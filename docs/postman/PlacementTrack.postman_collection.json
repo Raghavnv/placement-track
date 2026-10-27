@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "PlacementTrack API",
-    "description": "See docs/api-contract.md. Login or Register saves the JWT into {{token}} automatically. Log in as admin to call admin routes.",
+    "description": "See docs/api-contract.md. Run `npm run seed` in server/ first. Login requests save the JWT into {{token}}; List/Create drive saves {{driveId}}; Apply/My applications saves {{applicationId}}. Log in as admin before admin requests, as a student before student requests.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -29,6 +29,14 @@
     },
     {
       "key": "applicationId",
+      "value": ""
+    },
+    {
+      "key": "futureDeadline",
+      "value": ""
+    },
+    {
+      "key": "futureDriveDate",
       "value": ""
     }
   ],
@@ -82,7 +90,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Asha Rao\",\n  \"email\": \"asha@college.edu\",\n  \"password\": \"Str0ngPass!\",\n  \"rollNumber\": \"21CS045\",\n  \"branch\": \"CSE\",\n  \"cgpa\": 8.4,\n  \"backlogs\": 0,\n  \"graduationYear\": 2027,\n  \"phone\": \"9876543210\"\n}"
+          "raw": "{\n  \"name\": \"Neha Joshi\",\n  \"email\": \"neha@college.edu\",\n  \"password\": \"Str0ngPass!\",\n  \"rollNumber\": \"21CS099\",\n  \"branch\": \"CSE\",\n  \"cgpa\": 8.2,\n  \"backlogs\": 0,\n  \"graduationYear\": 2027,\n  \"phone\": \"9876500000\"\n}"
         }
       },
       "event": [
@@ -99,7 +107,7 @@
       ]
     },
     {
-      "name": "Auth / Login",
+      "name": "Auth / Login (student)",
       "request": {
         "method": "POST",
         "header": [
@@ -123,7 +131,48 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"email\": \"asha@college.edu\",\n  \"password\": \"Str0ngPass!\"\n}"
+          "raw": "{\n  \"email\": \"asha@college.edu\",\n  \"password\": \"Student@123\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.token) pm.collectionVariables.set(\"token\", json.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth / Login (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"officer@college.edu\",\n  \"password\": \"<ADMIN_SEED_PASSWORD>\"\n}"
         }
       },
       "event": [
@@ -206,7 +255,19 @@
             }
           ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d = pm.response.json().data;",
+              "if (d && d.length) pm.collectionVariables.set(\"driveId\", d[0]._id);"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Drives / Get one",
@@ -251,9 +312,32 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"companyName\": \"Infosys\",\n  \"role\": \"Systems Engineer\",\n  \"description\": \"Full-time role in Bengaluru.\",\n  \"package\": 6.5,\n  \"location\": \"Bengaluru\",\n  \"jobType\": \"full-time\",\n  \"eligibility\": {\n    \"minCgpa\": 7,\n    \"branches\": [\n      \"CSE\",\n      \"ISE\"\n    ],\n    \"graduationYear\": 2027,\n    \"maxBacklogs\": 0\n  },\n  \"deadline\": \"2026-11-15T18:29:59.000Z\",\n  \"driveDate\": \"2026-11-20T04:30:00.000Z\"\n}"
+          "raw": "{\n  \"companyName\": \"Infosys\",\n  \"role\": \"Systems Engineer\",\n  \"description\": \"Full-time role in Bengaluru.\",\n  \"package\": 6.5,\n  \"location\": \"Bengaluru\",\n  \"jobType\": \"full-time\",\n  \"eligibility\": {\n    \"minCgpa\": 7,\n    \"branches\": [\n      \"CSE\",\n      \"ISE\"\n    ],\n    \"graduationYear\": 2027,\n    \"maxBacklogs\": 0\n  },\n  \"deadline\": \"{{futureDeadline}}\",\n  \"driveDate\": \"{{futureDriveDate}}\"\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "if (j.drive) pm.collectionVariables.set(\"driveId\", j.drive._id);"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const day = 24 * 60 * 60 * 1000;",
+              "pm.collectionVariables.set(\"futureDeadline\", new Date(Date.now() + 7 * day).toISOString());",
+              "pm.collectionVariables.set(\"futureDriveDate\", new Date(Date.now() + 10 * day).toISOString());"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Drives / Update (admin)",
@@ -324,7 +408,19 @@
             "apply"
           ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "if (j.application) pm.collectionVariables.set(\"applicationId\", j.application._id);"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Drives / Applicants (admin)",
@@ -387,7 +483,19 @@
             "me"
           ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d = pm.response.json().data;",
+              "if (d && d.length) pm.collectionVariables.set(\"applicationId\", d[0]._id);"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Applications / Reminders (student)",
@@ -414,6 +522,29 @@
               "key": "days",
               "value": "7"
             }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Applications / Calendar export .ics (student)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/applications/me/calendar.ics",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "applications",
+            "me",
+            "calendar.ics"
           ]
         }
       }
@@ -505,13 +636,20 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/admin/stats",
+          "raw": "{{baseUrl}}/admin/stats?graduationYear=",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "admin",
             "stats"
+          ],
+          "query": [
+            {
+              "key": "graduationYear",
+              "value": "",
+              "disabled": true
+            }
           ]
         }
       }

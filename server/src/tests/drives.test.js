@@ -33,6 +33,7 @@ describe('GET /api/drives', () => {
     const later = await createDrive(admin, { companyName: 'Later', deadline: new Date(Date.now() + 9 * DAY) });
     await createDrive(admin, { companyName: 'Sooner', deadline: new Date(Date.now() + 1 * DAY) });
     await createDrive(admin, { companyName: 'Closed', status: 'closed' });
+    await createDrive(admin, { companyName: 'Expired', deadline: new Date(Date.now() - DAY) });
     await createDrive(admin, { companyName: 'TooHigh', eligibility: { minCgpa: 9.5 } });
     await createApplication(student, later);
 
@@ -45,6 +46,13 @@ describe('GET /api/drives', () => {
     expect(byName.Sooner).toMatchObject({ hasApplied: false, isEligible: true, applicantCount: 0 });
     expect(byName.TooHigh.isEligible).toBe(false);
     expect(res.body.pagination).toEqual({ page: 1, limit: 10, total: 3, totalPages: 1 });
+  });
+
+  it('lets students include past and closed drives with status=all', async () => {
+    await createDrive(admin, { deadline: new Date(Date.now() - DAY) });
+    await createDrive(admin, { status: 'closed' });
+    const res = await request(app).get('/api/drives?status=all').set(bearer(student));
+    expect(res.body.data).toHaveLength(2);
   });
 
   it('shows admins every drive without student-only flags', async () => {

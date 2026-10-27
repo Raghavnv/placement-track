@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const corsOptions = require('./config/cors');
 const authRoutes = require('./routes/authRoutes');
 const driveRoutes = require('./routes/driveRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -23,6 +25,8 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/drives', driveRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

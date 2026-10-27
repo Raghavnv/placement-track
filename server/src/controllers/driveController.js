@@ -22,18 +22,10 @@ async function findDriveOr404(id) {
   return drive;
 }
 
-async function countApplicants(driveIds) {
-  const rows = await Application.aggregate([
-    { $match: { drive: { $in: driveIds } } },
-    { $group: { _id: '$drive', count: { $sum: 1 } } },
-  ]);
-  return new Map(rows.map((row) => [row._id.toString(), row.count]));
-}
-
 // Adds applicantCount to every drive, plus isEligible/hasApplied for students.
 async function decorate(drives, user) {
   const ids = drives.map((d) => d._id);
-  const counts = await countApplicants(ids);
+  const counts = await Application.countByDrive(ids);
   const applied = isStudent(user)
     ? new Set((await Application.find({ student: user._id, drive: { $in: ids } }).distinct('drive')).map(String))
     : null;
@@ -52,8 +44,12 @@ exports.listDrives = asyncHandler(async (req, res) => {
   const { status, search, jobType, minPackage, eligibleOnly, sort, page, limit } = req.query;
   const filter = {};
 
-  const effectiveStatus = status || (isStudent(req.user) ? 'open' : 'all');
-  if (effectiveStatus !== 'all') filter.status = effectiveStatus;
+  if (status && status !== 'all') filter.status = status;
+  if (!status && isStudent(req.user)) {
+    // Students browse what they can still apply to: open and before the deadline.
+    filter.status = 'open';
+    filter.deadline = { $gte: new Date() };
+  }
   if (search) filter.$or = [{ companyName: containsRegex(search) }, { role: containsRegex(search) }];
   if (jobType) filter.jobType = jobType;
   if (minPackage !== undefined) filter.package = { $gte: minPackage };

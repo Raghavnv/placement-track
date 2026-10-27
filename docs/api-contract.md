@@ -61,8 +61,11 @@ Every error response has this shape:
 | 403 | `NOT_ELIGIBLE` | Student does not meet drive eligibility |
 | 404 | `NOT_FOUND` | Resource or route does not exist |
 | 409 | `EMAIL_TAKEN` | Register with an existing email |
+| 409 | `ROLL_NUMBER_TAKEN` | Register with an existing roll number |
 | 409 | `ALREADY_APPLIED` | Student already applied to this drive |
 | 409 | `DRIVE_CLOSED` | Applying to a drive whose `status` is `closed` |
+| 413 | `PAYLOAD_TOO_LARGE` | Request body over 100 KB |
+| 429 | `TOO_MANY_REQUESTS` | More than 20 login/register attempts in 15 minutes from one IP |
 | 500 | `INTERNAL_ERROR` | Anything unexpected (never leak stack traces) |
 
 ### 1.3 Pagination
@@ -195,6 +198,7 @@ Admin users only have `_id, name, email, role, createdAt, updatedAt`.
 | 14 | PATCH | `/api/applications/:id/notes` | Student (owner) | Save prep notes |
 | 15 | GET | `/api/applications/me/reminders` | Student | Upcoming deadlines and drive dates |
 | 16 | GET | `/api/admin/stats` | Admin | Dashboard statistics |
+| 17 | GET | `/api/applications/me/calendar.ics` | Student | Calendar file of deadlines and drive days |
 
 ---
 
@@ -204,7 +208,7 @@ Admin users only have `_id, name, email, role, createdAt, updatedAt`.
 **200** `{ "status": "ok" }`
 
 ### 1. `POST /api/auth/register`
-Creates a **student** account. Admin accounts are created only by the seed script (`npm run seed`, see database-schema.md); the `role` field is ignored if sent.
+Creates a **student** account. Admin accounts are created only by `npm run seed:admin` (production) or `npm run seed` (development demo data); the `role` field is ignored if sent.
 
 Request:
 ```json
@@ -238,7 +242,7 @@ Validation:
 ```json
 { "token": "<JWT>", "user": { /* User */ } }
 ```
-Errors: `400 VALIDATION_ERROR`, `409 EMAIL_TAKEN` (also used for a duplicate roll number, with `details[0].field = "rollNumber"`).
+Errors: `400 VALIDATION_ERROR`, `409 EMAIL_TAKEN`, `409 ROLL_NUMBER_TAKEN`, `429 TOO_MANY_REQUESTS`.
 
 ### 2. `POST /api/auth/login`
 Request:
@@ -249,7 +253,7 @@ Request:
 ```json
 { "token": "<JWT>", "user": { /* User */ } }
 ```
-Errors: `400 VALIDATION_ERROR`, `401 INVALID_CREDENTIALS` (same message for unknown email and wrong password, so you can't tell which accounts exist).
+Errors: `400 VALIDATION_ERROR`, `429 TOO_MANY_REQUESTS`, `401 INVALID_CREDENTIALS` (same message for unknown email and wrong password, so you can't tell which accounts exist).
 
 The client sends the user to `/student` or `/admin` based on `user.role`. The admin login page (`/admin/login`) shows "This account is not a placement officer account" if `role` is `student`, and does not keep the token.
 
@@ -266,7 +270,7 @@ Query parameters (all optional):
 
 | Param | Type | Description |
 |---|---|---|
-| `status` | `open` \| `closed` \| `all` | Default `open` for students, `all` for admin |
+| `status` | `open` \| `closed` \| `all` | If omitted: students see only drives they can still apply to (`open` **and** deadline not passed); admins see all |
 | `search` | string | Case-insensitive match on `companyName` or `role` |
 | `jobType` | `full-time` \| `internship` | |
 | `minPackage` | number | `package >= minPackage` |
@@ -280,6 +284,16 @@ Errors: `400 VALIDATION_ERROR`, `401 UNAUTHORIZED`.
 
 ### 5. `GET /api/drives/:id`
 **200** `{ "drive": { /* Drive */ } }`
+
+For students, `drive` also includes `eligibilityChecks`, one per criterion, for the eligibility checklist UI:
+```json
+"eligibilityChecks": [
+  { "field": "cgpa", "label": "CGPA ≥ 7", "actual": 8.4, "passed": true },
+  { "field": "branch", "label": "Branch: CSE, ISE", "actual": "CSE", "passed": true },
+  { "field": "graduationYear", "label": "Graduating in 2027", "actual": 2027, "passed": true },
+  { "field": "backlogs", "label": "Backlogs ≤ 0", "actual": 1, "passed": false }
+]
+```
 Errors: `400 INVALID_ID`, `401 UNAUTHORIZED`, `404 NOT_FOUND`.
 
 ### 6. `POST /api/drives`  (Admin)
@@ -337,6 +351,8 @@ No body. Checks are done in this order: drive exists, then `status` is `open`, t
 **201** `{ "application": { /* Application, stage "applied" */ } }`
 Errors: `400 INVALID_ID`, `400 DEADLINE_PASSED`, `401`, `403 FORBIDDEN` (admin token), `403 NOT_ELIGIBLE`, `404 NOT_FOUND`, `409 DRIVE_CLOSED`, `409 ALREADY_APPLIED`.
 
+`NOT_ELIGIBLE` lists the failed criteria in `details`, e.g. `[{ "field": "cgpa", "message": "Requires CGPA ≥ 7" }]`.
+
 ### 10. `GET /api/drives/:id/applicants`  (Admin)
 Query: `stage` (one stage key, optional), `search` (student name or roll number), `page`, `limit`.
 
@@ -348,8 +364,9 @@ Query: `stage` (one stage key, optional), `search` (student name or roll number)
   "data": [
     {
       "_id": "6650f1c2a1b2c3d4e5f60201",
-      "student": { "_id": "...", "name": "Asha Rao", "email": "asha@college.edu", "rollNumber": "21CS045", "branch": "CSE", "cgpa": 8.4 },
+      "student": { "_id": "...", "name": "Asha Rao", "email": "asha@college.edu", "rollNumber": "21CS045", "branch": "CSE", "cgpa": 8.4, "backlogs": 0, "graduationYear": 2027, "phone": "9876543210" },
       "stage": "aptitude",
+      "stageHistory": [ /* StageEvent[], for remarks and timeline */ ],
       "createdAt": "2026-10-28T10:00:00.000Z",
       "updatedAt": "2026-11-02T11:30:00.000Z"
     }
@@ -426,7 +443,18 @@ Returns two lists:
 ```
 In the UI, items under 24 hours left are shown as urgent (danger colour), and under 72 hours as a warning.
 
-Note: route order matters in Express. Register `/applications/me` and `/applications/me/reminders` **before** `/applications/:id`.
+Note: route order matters in Express. Register `/applications/me`, `/applications/me/reminders` and `/applications/me/calendar.ics` **before** `/applications/:id`.
+
+### 17. `GET /api/applications/me/calendar.ics`  (Student)
+Downloads an iCalendar (`.ics`) file that students can import into Google Calendar, Apple Calendar or Outlook. It contains:
+- a 1-hour event ending at each **deadline** for open drives they are eligible for and have not applied to (with an alert 1 day before)
+- a 3-hour event at each **drive date** for active applications (with an alert 12 hours before)
+
+It covers the next 365 days. **200** with `Content-Type: text/calendar` and `Content-Disposition: attachment; filename="placementtrack.ics"`.
+
+Because it needs the Bearer token, the UI should fetch it with axios (`responseType: 'blob'`) and trigger the download, not link to it directly.
+
+Errors: `401`, `403`.
 
 ---
 
@@ -449,14 +477,22 @@ Query: `graduationYear` (optional filter).
   "placementRate": 16.7,
   "packageStats": { "highest": 24.0, "average": 7.8, "median": 6.5 },
   "applicationsByStage": { "applied": 610, "aptitude": 280, "interview": 120, "offer": 74, "rejected": 206 },
+  "funnel": [
+    { "stage": "applied", "label": "Applied", "reached": 1290, "percentOfApplied": 100 },
+    { "stage": "aptitude", "label": "Aptitude Test", "reached": 680, "percentOfApplied": 52.7 },
+    { "stage": "interview", "label": "Interview", "reached": 250, "percentOfApplied": 19.4 },
+    { "stage": "offer", "label": "Offer", "reached": 74, "percentOfApplied": 5.7 }
+  ],
   "placedByBranch": [ { "branch": "CSE", "placed": 31, "total": 120 } ],
   "topDrives": [ { "driveId": "...", "companyName": "Infosys", "role": "Systems Engineer", "applicants": 98, "offers": 12 } ],
   "upcomingDeadlines": [ { "driveId": "...", "companyName": "TCS", "deadline": "2026-10-29T18:29:59.000Z", "applicants": 40 } ]
 }
 ```
+- `openDrives` = drives with `status: open` whose deadline has not passed.
 - `studentsPlaced` = distinct students with at least one `offer`.
+- `applicationsByStage` counts the **current** stage; `funnel` counts how many applications **ever reached** each stage (from `stageHistory`), showing where students drop off.
 - `placementRate` = `studentsPlaced / students * 100`, rounded to 1 decimal place.
-- `packageStats` is calculated over drives that have at least one offer, weighted by number of offers.
+- `packageStats` is calculated over all offers (each offer counts its drive's package). All zeros when there are no offers.
 - `topDrives` = the 5 drives with the most applicants. `upcomingDeadlines` = the next 5 open drives.
 
 Errors: `401`, `403`.
@@ -468,3 +504,4 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-27 | Backend implemented. Added `ROLL_NUMBER_TAKEN`, `413`, `429`; students' default drive list hides past deadlines; `eligibilityChecks` on drive details; `stageHistory` in applicants; `funnel` in stats; new #17 calendar export; dev port 5050 | Raghav |
