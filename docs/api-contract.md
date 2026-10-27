@@ -217,6 +217,9 @@ For students, list and detail responses also include:
 | 16 | GET | `/api/admin/stats` | Admin | Dashboard statistics |
 | 17 | GET | `/api/applications/me/calendar.ics` | Student | Calendar file of deadlines and drive days |
 | 18 | PATCH | `/api/auth/me` | Student | Save onboarding answers / profile |
+| 19 | PUT | `/api/auth/me/resume` | Student | Upload or replace resume (PDF/JPG, max 2 MB) |
+| 20 | GET | `/api/auth/me/resume` | Student | Download own resume |
+| 21 | DELETE | `/api/auth/me/resume` | Student | Remove own resume |
 
 ---
 
@@ -300,6 +303,32 @@ Saves onboarding answers or profile edits. Send any subset of these fields; anyt
 
 **200** `{ "user": { /* User */ } }`
 Errors: `400 VALIDATION_ERROR`, `401`, `403` (admin token).
+
+### 19. `PUT /api/auth/me/resume`  (Student)
+Uploads the student's resume, replacing any earlier one. The request body is the **raw file bytes** (not JSON or multipart), sent with the file's `Content-Type`; the original file name goes in the `name` query parameter.
+
+```
+PUT /api/auth/me/resume?name=Asha%20Rao%20Resume.pdf
+Content-Type: application/pdf
+
+<file bytes>
+```
+
+| Rule | |
+|---|---|
+| Type | PDF or JPG, detected from the file's first bytes (`%PDF-` / `FF D8 FF`), not from the name or header |
+| Size | max 2 MB |
+| `name` | optional; unsafe characters stripped, extension set from the detected type (default `resume.pdf`) |
+
+**200** `{ "user": { /* User, with resume: { fileName, mimeType, size, uploadedAt } */ } }`
+Errors: `400 VALIDATION_ERROR` (empty body), `413 PAYLOAD_TOO_LARGE`, `415 UNSUPPORTED_FILE_TYPE`, `401`, `403` (admin token).
+
+### 20. `GET /api/auth/me/resume`  (Student)
+**200** the file, with `Content-Type` set to its type and `Content-Disposition: inline; filename="<fileName>"`. The client fetches it as a blob (it needs the auth header) and opens it in a new tab.
+Errors: `404 NOT_FOUND` (nothing uploaded), `401`, `403`.
+
+### 21. `DELETE /api/auth/me/resume`  (Student)
+**200** `{ "user": { /* User, without resume */ } }`. Succeeds even if there was no resume.
 
 ---
 
@@ -545,5 +574,6 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Resume upload: new #19-21 `/auth/me/resume`, `User.resume`, `415 UNSUPPORTED_FILE_TYPE` | Pranav |
 | 2026-10-28 | Onboarding: `college` on register, `needsOnboarding`, new #18 `PATCH /auth/me`, drive `skills`, `matchScore`/`matchReasons`, `sort=match` | Raghav |
 | 2026-10-27 | Backend implemented. Added `ROLL_NUMBER_TAKEN`, `413`, `429`; students' default drive list hides past deadlines; `eligibilityChecks` on drive details; `stageHistory` in applicants; `funnel` in stats; new #17 calendar export; dev port 5050 | Raghav |

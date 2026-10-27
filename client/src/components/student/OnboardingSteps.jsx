@@ -4,6 +4,7 @@ export const ONBOARDING_STEPS = [
   { key: 'account', label: 'Account' },
   { key: 'academics', label: 'Academics' },
   { key: 'skills', label: 'Skills' },
+  { key: 'resume', label: 'Resume' },
   { key: 'interests', label: 'Interests' },
   { key: 'roles', label: 'Roles' },
   { key: 'preferences', label: 'Preferences' },

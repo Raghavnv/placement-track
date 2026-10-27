@@ -13,6 +13,7 @@ MongoDB with Mongoose. The database is `placement-track` and has three collectio
 - One **student** has many **applications**; one **drive** has many **applications**.
 - `Application` is the join between a student and a drive. It is **unique per (student, drive)**.
 - Deleting a drive deletes its applications (done in the controller with `Application.deleteMany({ drive })`).
+- One **student** has at most one **resume** (`Resume.student -> User._id`, unique). The file's details are copied onto `User.resume` for display.
 
 ---
 
@@ -39,6 +40,7 @@ MongoDB with Mongoose. The database is `placement-track` and has three collectio
 | `jobTypes` | [String] | no | `full-time`, `internship` | |
 | `expectedPackage` | Number | no | 0-200 (LPA) | |
 | `needsOnboarding` | Boolean | no | `true` on register, `false` once onboarding is done | Missing = no onboarding needed (older accounts) |
+| `resume` | Object | no | `{ fileName, mimeType, size, uploadedAt }`; `mimeType` is `application/pdf` or `image/jpeg` | Details of the uploaded resume; missing = none. The file is in `resumes` |
 | `createdAt` / `updatedAt` | Date | auto | | |
 
 Indexes: `{ email: 1 }` unique, `{ rollNumber: 1 }` unique sparse, `{ role: 1 }`.
@@ -113,6 +115,19 @@ const TRANSITIONS = {
   rejected: [],
 };
 ```
+
+---
+
+## 4. `Resume`  (collection: `resumes`)
+
+| Field | Type | Required | Constraints / default | Notes |
+|---|---|---|---|---|
+| `_id` | ObjectId | auto | | |
+| `student` | ObjectId → User | yes | **unique** | One resume per student; uploading again replaces it |
+| `data` | Buffer | yes | max 2 MB | The file bytes (PDF or JPG) |
+| `createdAt` / `updatedAt` | Date | auto | | |
+
+Kept apart from `users` so loading a user never loads the file. Stored in MongoDB because Render's free tier has no persistent disk.
 
 ---
 

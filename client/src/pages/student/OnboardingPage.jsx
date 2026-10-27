@@ -9,6 +9,7 @@ import { InlineAlert } from '../../components/common/States';
 import ThemeToggle from '../../components/layout/ThemeToggle';
 import OnboardingSteps from '../../components/student/OnboardingSteps';
 import ProfileCard from '../../components/student/ProfileCard';
+import ResumeUpload from '../../components/student/ResumeUpload';
 import MatchResults from '../../components/student/MatchResults';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -18,7 +19,7 @@ import { listDrives } from '../../services/driveService';
 import { INTEREST_OPTIONS, LOCATION_OPTIONS, ROLE_OPTIONS, skillSuggestions } from '../../utils/profileOptions';
 import { firstName } from '../../utils/format';
 
-const STEPS = ['skills', 'interests', 'roles', 'preferences'];
+const STEPS = ['skills', 'resume', 'interests', 'roles', 'preferences'];
 const MAX_ROLES = 5;
 
 const QUESTIONS = {
@@ -26,6 +27,11 @@ const QUESTIONS = {
     eyebrow: 'Your toolkit',
     title: ['What are you', 'good at?'],
     lead: 'Pick the languages, tools and subjects you can talk about in an interview. Add your own too.',
+  },
+  resume: {
+    eyebrow: 'Your first impression',
+    title: ['Upload your', 'resume.'],
+    lead: 'It’s the first thing recruiters ask for. Add a PDF or a clear JPG scan; you can replace it any time.',
   },
   interests: {
     eyebrow: 'What excites you',
@@ -77,6 +83,7 @@ export default function OnboardingPage() {
 
   const stepError = () => {
     if (step === 'skills' && draft.skills.length === 0) return 'Add at least one skill. Tap a suggestion to start.';
+    if (step === 'resume' && !user.resume) return 'Upload your resume to continue, or use “Skip for now” and add it later.';
     if (step === 'interests' && draft.interests.length === 0) return 'Pick at least one area.';
     if (step === 'roles' && draft.preferredRoles.length === 0) return 'Pick at least one role.';
     return '';
@@ -201,6 +208,16 @@ export default function OnboardingPage() {
                 onChange={(value) => set('skills', value)}
                 suggestions={skillSuggestions(user.branch)}
                 placeholder="e.g. Python, React, AutoCAD…"
+              />
+            )}
+
+            {step === 'resume' && (
+              <ResumeUpload
+                resume={user.resume}
+                onChange={(updated) => {
+                  updateUser(updated);
+                  setError('');
+                }}
               />
             )}
 
