@@ -84,7 +84,7 @@ Conventions:
 - Controllers never call `res.status(500)` themselves. They `throw new ApiError(...)` or let the error bubble up through `asyncHandler`.
 - Mongoose `CastError` → `400 INVALID_ID`; `ValidationError` → `400 VALIDATION_ERROR`; duplicate key `11000` → `409`.
 - Stage rules live in `utils/stages.js`; eligibility rules live in `utils/eligibility.js` (a pure function, unit-tested).
-- Tests import `app.js` (not `server.js`) and use a separate test database (`MONGO_URI` ending in `-test`, or `mongodb-memory-server` if the backend owner adds it).
+- Tests import `app.js` (not `server.js`) and run against an in-memory MongoDB (`mongodb-memory-server`, started once in `tests/setup/globalSetup.js`). Each test file gets its own database, and collections are cleared after every test.
 
 ## 5. Client architecture
 
