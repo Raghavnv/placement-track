@@ -2,7 +2,7 @@
 
 A full-stack web app for campus placements. Students find company drives they're eligible for, apply in one click, and track each application on a Kanban board. The placement officer posts drives, moves applicants through each round, and follows the season on a stats dashboard.
 
-> **Status:** project scaffold. Features are being built on three feature branches; see [Team](#team) and the [issues](../../issues).
+> **Status:** backend and a complete first version of the frontend are built. Teammates extend the UI on their feature branches; see [Team](#team) and the [issues](../../issues).
 
 ## Features
 
@@ -15,7 +15,7 @@ A full-stack web app for campus placements. Students find company drives they're
 - Private **prep notes** per application
 - **Deadline reminders** for eligible drives not yet applied to, plus upcoming drive dates
 - **Calendar export** (`.ics`): deadlines and drive days appear in Google or Apple Calendar with alerts
-- Mobile-first, accessible UI
+- Mobile-first, accessible UI with **light and dark themes**
 
 ### Admin (Placement Officer)
 - Separate officer login

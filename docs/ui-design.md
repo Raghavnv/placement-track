@@ -211,7 +211,7 @@ Infosys · Systems Engineer                                   37 applicants
 │ Asha Rao     │ 21CS045  │ CSE  │ 8.4  │ 28 Oct       │ [Aptitude] [Move to ▾]   │
 └──────────────┴──────────┴──────┴──────┴──────────────┴──────────────────────────┘
 ```
-"Move to ▾" only lists valid next stages (e.g. from Aptitude: Interview, Reject). Choosing **Reject** opens a small confirm dialog with an optional remark. Advancing applies immediately, shows a toast with **Undo** for 5 seconds (Undo is client-side: it delays the PATCH), and shows an optional remark field in a popover.
+"Move to" shows one button for the next stage (e.g. **Interview →**) plus a **Reject** button. Only valid next stages are offered. Both open a small dialog showing `current stage → new stage` with an optional remark that appears on the student's timeline. Rejection is marked as final. Stage changes can't be undone (the API only moves forward), so the dialog is the safety net.
 
 ## 5. Components and states checklist
 
@@ -226,7 +226,23 @@ Every data-driven view must handle **all four states**:
 
 Buttons: `primary` (one per view), `secondary` (outlined), `ghost` (text), `danger`. Height 40px (44px on touch screens), with a visible `:focus-visible` ring.
 
-## 6. Accessibility checklist (check every PR)
+## 6. Implemented extras
+
+| Feature | Where | Why |
+|---|---|---|
+| **Dark mode** | Theme toggle in the top bar and on auth pages; follows the system setting by default | Late-night prep sessions; every token has a dark value in `tokens.css` |
+| **Company monograms** | `CompanyAvatar`: initials on a colour derived from the company name | Drives are recognisable at a glance without logos |
+| **Progress dots** on Kanban cards | `ApplicationCard` | Shows how far each application got, including where a rejection happened |
+| **Calendar sync** | "Sync to calendar" on the dashboard and board | Deadlines and drive days show up in Google or Apple Calendar with alerts |
+| **Placement funnel** | Admin dashboard | Shows which round students drop out at |
+| **Student preview** | Drive form sidebar | The officer sees exactly how the drive card will look to students |
+| **"Waking up the server" banner** | Global | Explains the Render free-tier cold start instead of looking broken |
+| **`/` to search** | Drives, admin drives, applicants | Keyboard shortcut familiar from GitHub and YouTube |
+| **Shareable filters** | Drives and applicants keep filters in the URL | Back/forward and copied links keep the same view |
+| **CSV export** | Applicants page | Share a shortlist with the company |
+| **Unsaved-changes guards** | Notes drawer and drive form | No lost work |
+
+## 7. Accessibility checklist (check every PR)
 
 - [ ] All text meets 4.5:1 contrast (the tokens already do; don't put muted text on coloured backgrounds)
 - [ ] Every input has a `<label>`; errors are linked with `aria-describedby`
@@ -237,7 +253,7 @@ Buttons: `primary` (one per view), `secondary` (outlined), `ghost` (text), `dang
 - [ ] Animations respect `prefers-reduced-motion`
 - [ ] Touch targets are at least 44×44px on mobile
 
-## 7. Microcopy
+## 8. Microcopy
 
 | Situation | Text |
 |---|---|
