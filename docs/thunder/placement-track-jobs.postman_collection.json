@@ -1,0 +1,242 @@
+{
+  "info": {
+    "name": "PlacementTrack - Jobs",
+    "description": "Import into Thunder Client (Collections > menu > Import > Postman). Run 'Log in as student', copy the token from the response into the collection's token variable, then try the job searches. Set baseUrl to http://localhost:5050/api for local dev.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://placement-track-do7x.onrender.com/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Log in as student",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "description": "Seeded demo student (npm run seed). Use your own account on production. Copy `token` from the response into the token variable.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"asha@college.edu\",\n  \"password\": \"Student@123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Jobs for you (from profile)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "jobs"
+          ]
+        },
+        "description": "No q: searches the student's first preferred role in their first preferred city.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search: React developer in Bengaluru",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs?q=react developer&location=Bengaluru",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "react developer"
+            },
+            {
+              "key": "location",
+              "value": "Bengaluru"
+            }
+          ]
+        },
+        "description": "",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Internships anywhere, newest first",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs?q=data analyst&location=anywhere&jobType=internship&sort=date",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "data analyst"
+            },
+            {
+              "key": "location",
+              "value": "anywhere"
+            },
+            {
+              "key": "jobType",
+              "value": "internship"
+            },
+            {
+              "key": "sort",
+              "value": "date"
+            }
+          ]
+        },
+        "description": "",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Full-time, 6 LPA+, page 2",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs?q=java&jobType=full-time&minSalary=6&page=2",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "java"
+            },
+            {
+              "key": "jobType",
+              "value": "full-time"
+            },
+            {
+              "key": "minSalary",
+              "value": "6"
+            },
+            {
+              "key": "page",
+              "value": "2"
+            }
+          ]
+        },
+        "description": "",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Validation error (expect 400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs?jobType=freelance&page=11",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "jobType",
+              "value": "freelance"
+            },
+            {
+              "key": "page",
+              "value": "11"
+            }
+          ]
+        },
+        "description": "",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

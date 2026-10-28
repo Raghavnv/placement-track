@@ -13,6 +13,10 @@ const env = {
     .split(',')
     .map((url) => url.trim().replace(/\/$/, ''))
     .filter(Boolean),
+  // Optional: without these the Jobs tab says job search isn't set up. Keys from developer.adzuna.com
+  adzunaAppId: process.env.ADZUNA_APP_ID,
+  adzunaAppKey: process.env.ADZUNA_APP_KEY,
+  adzunaCountry: process.env.ADZUNA_COUNTRY || 'in',
 };
 
 // Fail fast on boot instead of failing on the first request.

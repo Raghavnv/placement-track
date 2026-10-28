@@ -59,8 +59,8 @@ function computeMatch(student, drive) {
   if (!jobTypes.length || jobTypes.includes(drive.jobType)) score += WEIGHTS.jobType;
 
   const target = student.expectedPackage;
-  if (!target) {
-    score += WEIGHTS.package / 2;
+  if (!target || drive.package == null) {
+    score += WEIGHTS.package / 2; // no target, or an outside job with no salary listed: neutral
   } else if (drive.package >= target) {
     score += WEIGHTS.package;
     reasons.push(`Pays above your ₹${target} LPA target`);

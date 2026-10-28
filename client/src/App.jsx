@@ -13,6 +13,7 @@ import DashboardPage from './pages/student/DashboardPage';
 import DrivesPage from './pages/student/DrivesPage';
 import DriveDetailsPage from './pages/student/DriveDetailsPage';
 import ApplicationsPage from './pages/student/ApplicationsPage';
+import JobsPage from './pages/student/JobsPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ManageDrivesPage from './pages/admin/ManageDrivesPage';
 import DriveFormPage from './pages/admin/DriveFormPage';
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
               { path: '/student/drives', element: <DrivesPage /> },
               { path: '/student/drives/:id', element: <DriveDetailsPage /> },
               { path: '/student/applications', element: <ApplicationsPage /> },
+              { path: '/student/jobs', element: <JobsPage /> },
             ],
           },
         ],

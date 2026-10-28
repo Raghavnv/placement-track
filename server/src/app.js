@@ -7,6 +7,7 @@ const driveRoutes = require('./routes/driveRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
+const jobRoutes = require('./routes/jobRoutes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -29,6 +30,7 @@ app.use('/api/drives', driveRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/jobs', jobRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
