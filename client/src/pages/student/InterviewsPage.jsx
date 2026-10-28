@@ -21,12 +21,7 @@ export default function InterviewsPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="AI mock interviews"
-        title={
-          <>
-            Rehearse the <mark>real round.</mark>
-          </>
-        }
+        title="Mock interviews"
         description="Five questions written from the job posting and your resume, pitched at the company's level, then a graded report."
       />
 

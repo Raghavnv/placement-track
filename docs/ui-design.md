@@ -10,27 +10,28 @@ Two people are building the UI on separate branches. This guide makes sure the s
 4. **Forgiving.** Confirm anything destructive. Keep form input when a request fails. Warn before leaving unsaved notes.
 5. **Consistent.** The same component looks and behaves the same on student and admin pages.
 
-## 2. Visual identity: "on track" (current)
+## 2. Visual identity: "workspace" (current)
 
-The product is named after a track, so the identity is built on one: **a metro line**. Applications are trains moving through stations (Applied → Aptitude → Interview → Offer). The line appears on the dashboard ("Your track"), on every Kanban card (mini track), in the application timeline and in the onboarding progress.
+A calm, professional tool in the spirit of Linear, Notion and Vercel: neutral surfaces, one accent, and colour used only where it carries meaning. The pipeline (Applied → Aptitude → Interview → Offer) still runs through the product: dashboard "Your track", the mini track on every Kanban card, the application timeline.
 
 | Element | Rule |
 |---|---|
-| Palette | Warm paper `#f3efe6`, ink `#16141d`, **lime** `#cdf25c` for "good/next/you", **coral** `#ff5a36` for urgency. Stage colours are kept for data. Dark theme inverts ink and paper; hard shadows become lime. |
-| Type | **Bricolage Grotesque** for headlines (tight tracking, 800), **Geist** for UI text, **Geist Mono** for numbers, labels and countdowns. |
-| Emphasis | One `<mark>` highlighter phrase per headline ("Find your <mark>next offer.</mark>"). Never more than one. |
-| Depth | Chunky 1.5px ink outlines and **hard offset shadows** on interactive things (buttons, tickets, tiles). Hover = lift up-left onto the shadow. Static containers stay flat. |
-| Stickers | Small rotated mono labels ("Closing soon", "Placement season is live") for status and personality. Use sparingly. |
-| Drive cards | "Tickets" with a perforated tear line: who/what above, money/time below. |
-| Delight | Confetti the first time a student sees a new offer; scanning animation before match results; marquee of company tickets on auth pages. All respect `prefers-reduced-motion`. |
-| Texture | A subtle paper grain over the whole app (`body::before`). |
+| Palette | Cool neutral greys (`--color-bg` `#f6f7f9`, white surfaces, `#e4e7ec` borders, `#101828` text). **One accent: indigo** `#4f46e5` for primary actions, links, focus, selection and "you are here". Stage, score and alert colours (blue, amber, violet, green, red) are for data only. The dark theme keeps the same roles on `#0b0d11` / `#121519`. |
+| Type | **Inter** for everything (headings 600–650 weight, tight tracking); tabular numbers for packages, scores and counts; **Geist Mono** only for codes like roll numbers. Page titles are plain nouns ("Drives", "My profile"). |
+| Emphasis | `<mark>` renders as indigo text, used only on login and onboarding headlines. In-app titles have no emphasis. |
+| Depth | 1px borders and soft layered shadows (`--shadow-xs` on cards, `--shadow-md` on hover, `--shadow-lg/xl` on menus, toasts and dialogs). No offset shadows, no rotation. |
+| Shape | Radii 6 / 8 / 12 / 16px: inputs and buttons 8, cards 12, dialogs 16. Pills only for badges and filters. |
+| Navigation | Light sidebar with a soft indigo active state; tabs underline in indigo; mobile uses a bottom bar. |
+| Delight | Kept small: confetti the first time a student sees a new offer; scanning animation before match results; a slow marquee of company chips on auth pages. All respect `prefers-reduced-motion`. |
+
+Legacy class and token names (`--color-lime`, `btn--lime`, `sticker`, `ticket`) still exist so components didn't need rewriting; they now map to the accent, status pills and plain cards.
 
 ### Onboarding flow
-`/register` (name, **college** search, email, password) → academics (account is created here) → `/onboarding`: skills (branch-aware suggestions + free text) → interests (emoji tiles) → roles (icon tiles, max 5) → preferences (job type, cities, package slider) → matching animation → ranked matches with % and reasons. A live "student ID" card fills in on the right as they answer. New students are redirected to `/onboarding` until they finish or skip; "Edit skills & preferences" on the dashboard reopens it.
+`/register` (name, **college** search, email, password) → academics (account is created here) → `/onboarding`: skills (branch-aware suggestions + free text) → interests (emoji tiles) → roles (icon tiles, max 5) → preferences (job type, cities, package slider) → matching animation → ranked matches with % and reasons. A live profile summary card fills in on the right as they answer. New students are redirected to `/onboarding` until they finish or skip; "Edit skills & preferences" on the dashboard reopens it.
 
 > Sections 3–8 below describe layouts, states and accessibility rules; they still apply. Colour hex values in the old table are superseded by `client/src/styles/tokens.css`.
 
-## 2b. Visual language (original v1, kept for reference)
+## 2b. Visual language (original v1, superseded by section 2; kept for reference)
 
 ### 2.1 Colour
 

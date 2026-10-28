@@ -348,7 +348,7 @@ export default function InterviewRoomPage() {
       <PageHeader
         back={{ to: '/student/interviews', label: 'All mock interviews' }}
         eyebrow={interview ? `Mock interview · ${interview.target.level}` : 'Mock interview'}
-        title={interview ? (done ? <>Your <mark>report.</mark></> : interview.target.title) : 'Loading…'}
+        title={interview ? (done ? 'Interview report' : interview.target.title) : 'Loading…'}
         description={interview && (done ? interview.target.title : 'Answer like you would in the room. Your answers save as you move between questions.')}
       />
       {error?.status === 404 ? (

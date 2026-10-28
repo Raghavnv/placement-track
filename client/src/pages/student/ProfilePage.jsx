@@ -148,12 +148,7 @@ export default function ProfilePage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="Your account"
-        title={
-          <>
-            My <mark>profile.</mark>
-          </>
-        }
+        title="My profile"
         description="What recruiters and the placement cell see, and what your match scores are based on."
       />
 

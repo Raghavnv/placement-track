@@ -89,12 +89,7 @@ export default function DrivesPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="Live drives"
-        title={
-          <>
-            Find your <mark>next offer.</mark>
-          </>
-        }
+        title="Drives"
         description="Ranked by how well each drive fits your skills, interests and goals."
         actions={
           <Button as={Link} to="/onboarding?edit=1" variant="secondary" icon={SlidersHorizontal}>

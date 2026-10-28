@@ -55,12 +55,7 @@ export default function PolicyPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="Officer settings"
-        title={
-          <>
-            Placement <mark>policy.</mark>
-          </>
-        }
+        title="Placement policy"
         description="Tier drives by package and decide who can keep applying after an offer. Changes apply immediately."
       />
       {error && <ErrorState error={error} onRetry={reload} />}
