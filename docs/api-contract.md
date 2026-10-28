@@ -65,8 +65,10 @@ Every error response has this shape:
 | 409 | `ALREADY_APPLIED` | Student already applied to this drive |
 | 409 | `DRIVE_CLOSED` | Applying to a drive whose `status` is `closed` |
 | 413 | `PAYLOAD_TOO_LARGE` | Request body over 100 KB |
-| 429 | `TOO_MANY_REQUESTS` | More than 20 login/register attempts in 15 minutes from one IP |
+| 429 | `TOO_MANY_REQUESTS` | More than 20 login/register attempts, or 60 job searches, in 15 minutes from one IP |
 | 500 | `INTERNAL_ERROR` | Anything unexpected (never leak stack traces) |
+| 502 | `JOBS_PROVIDER_ERROR` | Adzuna (outside job listings) failed, timed out, or rejected our keys |
+| 503 | `JOBS_NOT_CONFIGURED` | `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` are not set on the server |
 
 ### 1.3 Pagination
 
@@ -228,6 +230,7 @@ For students, list and detail responses also include:
 | 27 | POST | `/api/drives/:id/applicants/resumes` | Admin | ZIP of applicants' resumes |
 | 28 | GET | `/api/admin/students` | Admin | Students directory (filters, season summary) |
 | 29 | GET | `/api/admin/students/:id` | Admin | One student's profile and applications |
+| 30 | GET | `/api/jobs` | Student | Outside job listings (Adzuna), scored against the profile |
 
 ---
 
@@ -390,6 +393,57 @@ Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (unknown drive), `401`, `403`.
 ### 25. `DELETE /api/announcements/:id`  (Admin)
 **200** `{ "message": "Announcement deleted" }`. Errors: `400 INVALID_ID`, `404 NOT_FOUND`, `401`, `403`.
 Deleting a drive (#8) also deletes its announcements.
+
+---
+
+## 3b. Jobs (outside listings)
+
+Live job listings from [Adzuna](https://developer.adzuna.com), separate from campus drives: students apply on the company's site, nothing is stored as an application. The server calls Adzuna (keys never reach the browser), caches each search in MongoDB for 6 hours, and scores every job with the same match engine as drives (`utils/matching.js`).
+
+### 30. `GET /api/jobs`  (Student)
+Query (all optional):
+
+| Param | Meaning |
+|---|---|
+| `q` | Role, skill or company. Empty = "for you": searches the student's first preferred role (e.g. `software` → "software developer") |
+| `location` | City name, or `anywhere` for all of India. Empty = the student's first preferred city in "for you" mode, all of India otherwise |
+| `jobType` | `full-time`, `internship`, `part-time`, `contract` |
+| `minSalary` | LPA, e.g. `6` |
+| `sort` | `match` (default; ranks within the page), `date`, `salary` |
+| `page` | 1-10 (default 1) |
+| `limit` | 1-20 (default 12) |
+
+**200**
+```json
+{
+  "data": [
+    {
+      "id": "4412",
+      "title": "Junior React Developer",
+      "company": "Acme Labs",
+      "location": "Bangalore, Karnataka",
+      "description": "Build dashboards with React, Node.js and SQL…",
+      "category": "IT Jobs",
+      "url": "https://www.adzuna.in/land/ad/4412",
+      "postedAt": "2026-10-20T09:00:00Z",
+      "salaryMin": 6,
+      "salaryMax": 9,
+      "salaryIsEstimate": false,
+      "jobType": "full-time",
+      "skills": ["React", "SQL", "Node.js"],
+      "matchScore": 86,
+      "matchReasons": ["2 of 3 skills match (React, SQL)", "Fits your Web / Full-stack Developer goal", "Bengaluru is on your list"]
+    }
+  ],
+  "pagination": { "page": 1, "limit": 12, "total": 1840, "totalPages": 10 },
+  "search": { "mode": "for-you", "keywords": "web developer", "location": "Bengaluru", "suggestions": ["web developer", "React", "SQL"] }
+}
+```
+- Salaries are LPA; `null` when the listing has none. `salaryIsEstimate: true` means Adzuna predicted it.
+- `description` is Adzuna's snippet (a few hundred characters), not the full ad. `url` opens the full listing.
+- `search.suggestions` are the student's role searches then top skills, for one-tap chips.
+
+Errors: `400 VALIDATION_ERROR`, `401`, `403` (admins), `429 TOO_MANY_REQUESTS`, `502 JOBS_PROVIDER_ERROR`, `503 JOBS_NOT_CONFIGURED`.
 
 ---
 
@@ -709,6 +763,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Outside jobs: new #30 `GET /api/jobs` (Adzuna), `502 JOBS_PROVIDER_ERROR`, `503 JOBS_NOT_CONFIGURED` | Raghav |
 | 2026-10-28 | Resume ZIP (#27) and students directory (#28-29) | Pranav |
 | 2026-10-28 | Bulk stage moves: new #26 | Pranav |
 | 2026-10-28 | Announcements: new #23-25, drive delete removes its announcements | Pranav |
