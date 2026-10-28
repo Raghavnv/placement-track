@@ -13,6 +13,7 @@ const job = z.object({
   location: z.string().trim().max(120).default(''),
   description: z.string().trim().max(2000).default(''),
   skills: z.array(z.string().trim().max(40)).max(30).default([]),
+  salary: z.coerce.number().min(0).max(500).nullable().optional(), // LPA midpoint, when the listing has one
 });
 
 const fit = z
@@ -23,4 +24,4 @@ const fit = z
   })
   .refine((body) => Boolean(body.driveId) !== Boolean(body.job), { message: 'Send either driveId or job', path: ['driveId'] });
 
-module.exports = { review, fit };
+module.exports = { review, fit, job };

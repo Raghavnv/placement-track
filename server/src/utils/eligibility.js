@@ -1,6 +1,9 @@
+const { policyCheck, policyCondition } = require('./placement');
+
 // Pure eligibility rules (api-contract.md 1.5). Returns one check per criterion so
 // the UI can render a pass/fail checklist and the API can explain NOT_ELIGIBLE.
-function checkEligibility(student, drive) {
+// `placement` (from utils/placement placementFor) adds the offer-policy check when it applies.
+function checkEligibility(student, drive, placement = null) {
   const rules = drive.eligibility || {};
   const minCgpa = rules.minCgpa ?? 0;
   const branches = rules.branches || [];
@@ -34,18 +37,22 @@ function checkEligibility(student, drive) {
       passed: backlogs <= maxBacklogs,
     },
   ];
+  const policy = policyCheck(placement, drive);
+  if (policy) checks.push(policy);
 
   return { eligible: checks.every((c) => c.passed), checks };
 }
 
 // The same rules as a MongoDB filter, for "eligible only" listings and reminders.
-function eligibilityFilter(student) {
+function eligibilityFilter(student, placement = null) {
+  const policy = policyCondition(placement);
   return {
     'eligibility.minCgpa': { $lte: student.cgpa },
     'eligibility.maxBacklogs': { $gte: student.backlogs ?? 0 },
     $and: [
       { $or: [{ 'eligibility.branches': { $size: 0 } }, { 'eligibility.branches': student.branch }] },
       { $or: [{ 'eligibility.graduationYear': null }, { 'eligibility.graduationYear': student.graduationYear }] },
+      ...(policy ? [policy] : []),
     ],
   };
 }

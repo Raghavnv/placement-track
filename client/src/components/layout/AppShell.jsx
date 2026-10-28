@@ -10,7 +10,9 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  MessagesSquare,
   PlusCircle,
+  Scale,
   Sparkles,
   UserRound,
   X,
@@ -28,6 +30,7 @@ const NAV = {
     { to: '/student/jobs', label: 'Jobs', icon: Globe },
     { to: '/student/applications', label: 'My applications', shortLabel: 'Board', icon: KanbanSquare },
     { to: '/student/coach', label: 'Resume coach', icon: Sparkles, mobile: false }, // reached from Profile on phones
+    { to: '/student/interviews', label: 'Mock interviews', icon: MessagesSquare, mobile: false }, // reached from drives on phones
     { to: '/student/profile', label: 'My profile', shortLabel: 'Profile', icon: UserRound },
   ],
   admin: [
@@ -36,6 +39,7 @@ const NAV = {
     { to: '/admin/drives/new', label: 'New drive', icon: PlusCircle },
     { to: '/admin/students', label: 'Students', icon: GraduationCap },
     { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
+    { to: '/admin/policy', label: 'Placement policy', icon: Scale },
   ],
 };
 

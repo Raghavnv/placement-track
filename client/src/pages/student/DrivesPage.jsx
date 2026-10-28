@@ -7,6 +7,7 @@ import Pagination from '../../components/common/Pagination';
 import { Segmented, Switch } from '../../components/common/Field';
 import { CardSkeleton, EmptyState, ErrorState } from '../../components/common/States';
 import DriveCard from '../../components/student/DriveCard';
+import PlacementStatus from '../../components/student/PlacementStatus';
 import useAsync from '../../hooks/useAsync';
 import useDebounce from '../../hooks/useDebounce';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
@@ -101,6 +102,8 @@ export default function DrivesPage() {
           </Button>
         }
       />
+
+      <PlacementStatus variant="notice" />
 
       <div className="toolbar card">
         <div className="search-input">

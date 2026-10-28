@@ -2,6 +2,7 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { checkEligibility, eligibilityFilter } = require('../utils/eligibility');
 const { computeMatch } = require('../utils/matching');
+const { getPolicy, placementFor, tierOf } = require('../utils/placement');
 const { emptyStageCounts } = require('../utils/stages');
 const { containsRegex, paginationMeta } = require('../utils/query');
 const { DRIVE_SUMMARY_FIELDS } = require('../utils/constants');
@@ -24,19 +25,24 @@ async function findDriveOr404(id) {
   return drive;
 }
 
-// Adds applicantCount to every drive, plus isEligible/hasApplied for students.
-async function decorate(drives, user) {
+// Adds applicantCount and tier to every drive, plus isEligible/hasApplied for students.
+// `placement` can be passed in when the caller already loaded it.
+async function decorate(drives, user, placement) {
   const ids = drives.map((d) => d._id);
+  const loaded = isStudent(user) ? placement || (await placementFor(user)) : null;
+  const policy = loaded ? loaded.policy : await getPolicy();
   const counts = await Application.countByDrive(ids);
   const applied = isStudent(user)
     ? new Set((await Application.find({ student: user._id, drive: { $in: ids } }).distinct('drive')).map(String))
     : null;
 
   return drives.map((drive) => {
-    const out = { ...drive, applicantCount: counts.get(drive._id.toString()) || 0 };
+    // Tiers only apply to full-time drives (the policy never limits internships).
+    const tier = drive.jobType === 'full-time' ? tierOf(drive.package, policy) : null;
+    const out = { ...drive, applicantCount: counts.get(drive._id.toString()) || 0, tier };
     if (applied) {
       const match = computeMatch(user, drive);
-      out.isEligible = checkEligibility(user, drive).eligible;
+      out.isEligible = checkEligibility(user, drive, loaded).eligible;
       out.hasApplied = applied.has(drive._id.toString());
       out.matchScore = match.score;
       out.matchReasons = match.reasons;
@@ -58,11 +64,12 @@ exports.listDrives = asyncHandler(async (req, res) => {
   if (search) filter.$or = [{ companyName: containsRegex(search) }, { role: containsRegex(search) }];
   if (jobType) filter.jobType = jobType;
   if (minPackage !== undefined) filter.package = { $gte: minPackage };
-  if (eligibleOnly && isStudent(req.user)) Object.assign(filter, eligibilityFilter(req.user));
+  const placement = isStudent(req.user) ? await placementFor(req.user) : undefined;
+  if (eligibleOnly && placement) Object.assign(filter, eligibilityFilter(req.user, placement));
 
   if (sort === 'match' && isStudent(req.user)) {
     // Match scores are computed per student, so rank in memory (drive counts are small).
-    const all = await decorate(await Drive.find(filter).select('-__v').sort(SORTS.deadline).lean(), req.user);
+    const all = await decorate(await Drive.find(filter).select('-__v').sort(SORTS.deadline).lean(), req.user, placement);
     all.sort((a, b) => b.matchScore - a.matchScore || a.deadline - b.deadline);
     res.json({ data: all.slice((page - 1) * limit, page * limit), pagination: paginationMeta(page, limit, all.length) });
     return;
@@ -73,22 +80,24 @@ exports.listDrives = asyncHandler(async (req, res) => {
     Drive.find(filter).select('-__v').sort(SORTS[sort] || SORTS.deadline).skip((page - 1) * limit).limit(limit).lean(),
   ]);
 
-  res.json({ data: await decorate(drives, req.user), pagination: paginationMeta(page, limit, total) });
+  res.json({ data: await decorate(drives, req.user, placement), pagination: paginationMeta(page, limit, total) });
 });
 
 exports.getDrive = asyncHandler(async (req, res) => {
   const drive = await Drive.findById(req.params.id).select('-__v').lean();
   if (!drive) throw new ApiError(404, 'NOT_FOUND', 'Drive not found');
 
-  const [decorated] = await decorate([drive], req.user);
-  if (isStudent(req.user)) decorated.eligibilityChecks = checkEligibility(req.user, drive).checks;
+  const placement = isStudent(req.user) ? await placementFor(req.user) : undefined;
+  const [decorated] = await decorate([drive], req.user, placement);
+  if (placement) decorated.eligibilityChecks = checkEligibility(req.user, drive, placement).checks;
 
   res.json({ drive: decorated });
 });
 
 exports.createDrive = asyncHandler(async (req, res) => {
   const drive = await Drive.create({ ...req.body, status: 'open', createdBy: req.user._id });
-  res.status(201).json({ drive: { ...drive.toJSON(), applicantCount: 0 } });
+  const [decorated] = await decorate([drive.toJSON()], req.user);
+  res.status(201).json({ drive: decorated });
 });
 
 exports.updateDrive = asyncHandler(async (req, res) => {
@@ -123,7 +132,7 @@ exports.applyToDrive = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'DEADLINE_PASSED', 'The application deadline for this drive has passed');
   }
 
-  const { eligible, checks } = checkEligibility(req.user, drive);
+  const { eligible, checks } = checkEligibility(req.user, drive, await placementFor(req.user));
   if (!eligible) {
     const failed = checks.filter((c) => !c.passed).map((c) => ({ field: c.field, message: `Requires ${c.label}` }));
     throw new ApiError(403, 'NOT_ELIGIBLE', "You don't meet the eligibility criteria for this drive", failed);

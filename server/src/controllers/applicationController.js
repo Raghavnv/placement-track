@@ -2,6 +2,7 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { canTransition, emptyStageCounts, STAGE_LABELS, TRANSITIONS } = require('../utils/stages');
 const { eligibilityFilter } = require('../utils/eligibility');
+const { placementFor } = require('../utils/placement');
 const { buildCalendar } = require('../utils/ics');
 const { DRIVE_SUMMARY_FIELDS } = require('../utils/constants');
 const Application = require('../models/Application');
@@ -131,14 +132,17 @@ exports.updateNotes = asyncHandler(async (req, res) => {
 // Eligible open drives the student hasn't applied to, and drive days of active applications.
 async function upcomingFor(student, until) {
   const now = new Date();
-  const appliedDriveIds = await Application.find({ student: student._id }).distinct('drive');
+  const [appliedDriveIds, placement] = await Promise.all([
+    Application.find({ student: student._id }).distinct('drive'),
+    placementFor(student),
+  ]);
 
   const [deadlineDrives, activeApplications] = await Promise.all([
     Drive.find({
       status: 'open',
       deadline: { $gte: now, $lte: until },
       _id: { $nin: appliedDriveIds },
-      ...eligibilityFilter(student),
+      ...eligibilityFilter(student, placement),
     })
       .select('companyName role location deadline')
       .sort({ deadline: 1 })

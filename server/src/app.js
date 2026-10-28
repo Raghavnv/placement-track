@@ -9,6 +9,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const coachRoutes = require('./routes/coachRoutes');
+const placementRoutes = require('./routes/placementRoutes');
+const interviewRoutes = require('./routes/interviewRoutes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -33,6 +35,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/coach', coachRoutes);
+app.use('/api/placement', placementRoutes);
+app.use('/api/interviews', interviewRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -75,6 +75,8 @@ Every error response has this shape:
 | 429 | `AI_BUSY` | Groq's free-tier rate limit was hit; try again in a minute |
 | 502 | `AI_PROVIDER_ERROR` | Groq failed, timed out, rejected the key, or returned non-JSON |
 | 503 | `AI_NOT_CONFIGURED` | `GROQ_API_KEY` is not set on the server |
+| 400 | `NO_ANSWERS` | Finishing a mock interview with every answer blank |
+| 409 | `INTERVIEW_COMPLETED` | Saving an answer to an interview that is already graded |
 
 ### 1.3 Pagination
 
@@ -240,6 +242,14 @@ For students, list and detail responses also include:
 | 31 | GET | `/api/coach/review` | Student | Saved AI resume review for the current resume (no AI call) |
 | 32 | POST | `/api/coach/review` | Student | Run (or reuse) the AI resume review |
 | 33 | POST | `/api/coach/fit` | Student | AI "How do I fit?" for one drive or outside job |
+| 34 | GET | `/api/placement/policy` | Any | Offer policy and tier cutoffs |
+| 35 | PUT | `/api/placement/policy` | Admin | Change the offer policy |
+| 36 | GET | `/api/placement/me` | Student | Best offer, its tier, and what they may still apply to |
+| 37 | GET | `/api/interviews` | Student | My mock interviews |
+| 38 | POST | `/api/interviews` | Student | Start an AI mock interview for a drive or job |
+| 39 | GET | `/api/interviews/:id` | Student | One interview (rubric hidden until graded) |
+| 40 | PUT | `/api/interviews/:id/answers/:index` | Student | Save one answer |
+| 41 | POST | `/api/interviews/:id/finish` | Student | Grade the interview and build the report |
 
 ---
 
@@ -505,6 +515,70 @@ Body: either `{ "driveId": "..." }` (a campus drive) or `{ "job": { "id", "title
 At most 4 `strengths`, 4 `gaps`, 3 `tailoredBullets`, 3 `talkingPoints`. Saved per drive/job per resume.
 
 Errors: as #32, plus `400 VALIDATION_ERROR` (neither or both of `driveId` / `job`), `404 NOT_FOUND` (unknown drive).
+
+---
+
+## 3d. Placement policy
+
+Drives are tiered by package: **Regular** below `dreamMinPackage`, **Dream** from it, **Super Dream** from `superDreamMinPackage` (LPA; defaults 8 and 15, stored in the `PlacementPolicy` collection). Only full-time drives have a tier; internship drives have `tier: null`.
+
+A student is **placed** when one of their applications to a **full-time** drive reaches `offer`; their best offer is the one with the highest package. With the policy `enabled`, a placed student may apply only to full-time drives in a higher tier than their offer (Regular -> Dream+, Dream -> Super Dream), and a Super Dream holder to no full-time drives. Internship drives and internship offers are never limited.
+
+The rule is part of eligibility (1.5): drive lists and details gain `tier`; `isEligible`, `eligibilityChecks`, `eligibleOnly=true`, applying (`403 NOT_ELIGIBLE` with `{ field: "policy" }`) and deadline reminders all apply it. The extra check row looks like `{ "field": "policy", "label": "Dream+ drive (placement policy)", "actual": "Regular offer, Deloitte", "passed": false }`.
+
+### 34. `GET /api/placement/policy`  (Any)
+**200** `{ "policy": { "enabled": true, "dreamMinPackage": 8, "superDreamMinPackage": 15, "updatedAt": null }, "tiers": [{ "key": "regular", "label": "Regular", "minPackage": 0, "maxPackage": 8 }, ...] }`
+
+### 35. `PUT /api/placement/policy`  (Admin)
+Body: `{ "enabled": true, "dreamMinPackage": 8, "superDreamMinPackage": 15 }` (all required; cutoffs 0.5-200 LPA, Super Dream above Dream). **200** same shape as #34. Errors: `400 VALIDATION_ERROR`, `403`.
+
+### 36. `GET /api/placement/me`  (Student)
+**200** `{ "placement": { "placed": true, "offer": { "companyName", "role", "package", "tier", "driveId", "applicationId" } | null, "minPackage": 8 | null, "canApplyFullTime": true, "message": "You hold a Regular offer from…" | null }, "policy", "tiers" }`
+
+---
+
+## 3e. Mock interviews (AI)
+
+Groq-written interviews for one campus drive or outside job (same target body as #33). The model writes 5 questions specific to the posting: 2 technical deep-dives on its key skills, 1 scenario, 1 about a project on the resume (or the student's own project if there's no readable PDF resume), 1 behavioural (STAR). Difficulty follows the role's tier: Regular = mass-recruiter level, Dream (or unknown salary) = product-company level, Super Dream = top-tier level. Each question has a hidden rubric. Answers save one at a time without calling the AI; finishing grades every answer 0-10 against its rubric in one AI call. Writing and grading count toward the AI rate limit.
+
+### 37. `GET /api/interviews`  (Student)
+Query: `driveId` (optional), `page`, `limit`. **200** `{ "data": [{ "_id", "target", "status", "report": { "overallScore", "verdict", "verdictLabel" } | null, "createdAt", "completedAt" }], "pagination" }`, newest first.
+
+### 38. `POST /api/interviews`  (Student)
+Body: `{ "driveId": "..." }` or `{ "job": { "id", "title", "company", "location", "description", "skills", "salary" } }` (`salary` = LPA, optional).
+**201** `{ "interview": Interview }`
+```json
+{
+  "_id": "...",
+  "target": { "kind": "drive", "key": "drive:...", "drive": "...", "title": "Backend Developer at Zoho", "level": "Product-company level" },
+  "status": "in-progress",
+  "questions": [{ "kind": "technical", "focus": "Spring Boot", "difficulty": "medium", "question": "How does…", "answer": "" }],
+  "report": null
+}
+```
+`kind` is `technical`, `scenario`, `project` or `behavioural`. Errors: as #33.
+
+### 39. `GET /api/interviews/:id`  (Student, owner only)
+**200** `{ "interview": Interview }`. Once `status` is `completed`, each question also has `rubric`, `score` (0-10), `feedback` and `strongAnswer`, and `report` is:
+```json
+{
+  "overallScore": 58,
+  "verdict": "borderline",
+  "verdictLabel": "Borderline: could go either way",
+  "recommendation": "Would this candidate be a good fit for this role right now, and why",
+  "summary": "How they came across",
+  "competencies": [{ "name": "Databases & SQL", "score": 40, "note": "Missed composite index ordering" }],
+  "nextSteps": ["Practise composite indexes with EXPLAIN"],
+  "answered": 4
+}
+```
+`overallScore` is the average answer score x 10, computed by the server; unanswered questions score 0. Verdicts: `strong` (75+, "Likely to clear this round"), `borderline` (55-74), `not-yet` (below 55). Errors: `404 NOT_FOUND` (unknown or another student's).
+
+### 40. `PUT /api/interviews/:id/answers/:index`  (Student, owner only)
+Body: `{ "answer": "..." }` (trimmed, max 4000 chars). **200** `{ "index": 0, "answer": "..." }`. Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND`, `409 INTERVIEW_COMPLETED`.
+
+### 41. `POST /api/interviews/:id/finish`  (Student, owner only)
+Grades the interview. **200** `{ "interview": Interview }` (completed). Finishing an already graded interview returns it without calling the AI. Errors: `400 NO_ANSWERS`, `404`, and the AI errors from #32.
 
 ---
 
@@ -824,6 +898,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Placement policy: drive `tier`, policy eligibility check, new #34-36; mock interviews: new #37-41, `NO_ANSWERS`, `INTERVIEW_COMPLETED` | Raghav |
 | 2026-10-28 | Resume Coach (Groq): new #31-33 `/api/coach/*`, `NO_RESUME`, `RESUME_NOT_PDF`, `RESUME_UNREADABLE`, `AI_BUSY`, `AI_PROVIDER_ERROR`, `AI_NOT_CONFIGURED` | Raghav |
 | 2026-10-28 | Outside jobs: new #30 `GET /api/jobs` (Adzuna), `502 JOBS_PROVIDER_ERROR`, `503 JOBS_NOT_CONFIGURED` | Raghav |
 | 2026-10-28 | Resume ZIP (#27) and students directory (#28-29) | Pranav |

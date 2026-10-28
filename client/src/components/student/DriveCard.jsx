@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Briefcase, CheckCircle2, MapPin, Users } from 'lucide-react';
 import { CompanyAvatar } from '../common/Avatar';
-import { Badge, DeadlineChip } from '../common/Badges';
+import { Badge, DeadlineChip, TierBadge } from '../common/Badges';
 import MatchRing from '../common/MatchRing';
 import { formatPackage, timeLeft } from '../../utils/format';
 import { jobTypeLabel } from '../../utils/constants';
@@ -26,7 +26,10 @@ export default function DriveCard({ drive, to }) {
         <div className="ticket__title">
           <h3>{drive.companyName}</h3>
           <p>{drive.role}</p>
-          {drive.isEligible !== undefined && <EligibilityBadge drive={drive} />}
+          <span className="ticket__badges">
+            {drive.isEligible !== undefined && <EligibilityBadge drive={drive} />}
+            <TierBadge tier={drive.tier} />
+          </span>
         </div>
         {showMatch && <MatchRing score={drive.matchScore} size={58} />}
       </div>

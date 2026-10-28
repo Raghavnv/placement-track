@@ -3,12 +3,14 @@ import { Briefcase, MapPin, SearchX, ShieldCheck, Sparkles, Tag, Users } from 'l
 import MatchRing from '../../components/common/MatchRing';
 import PageHeader from '../../components/common/PageHeader';
 import { CompanyAvatar } from '../../components/common/Avatar';
+import { TierBadge } from '../../components/common/Badges';
 import { CardSkeleton, EmptyState, ErrorState } from '../../components/common/States';
 import { EligibilityBadge } from '../../components/student/DriveCard';
 import EligibilityChecklist from '../../components/student/EligibilityChecklist';
 import ApplyPanel from '../../components/student/ApplyPanel';
 import AnnouncementsPanel from '../../components/student/AnnouncementsPanel';
 import FitCheckButton from '../../components/student/FitCheckButton';
+import InterviewButton from '../../components/student/InterviewButton';
 import useAsync from '../../hooks/useAsync';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { getDrive } from '../../services/driveService';
@@ -50,6 +52,7 @@ export default function DriveDetailsPage() {
                 <CompanyAvatar name={drive.companyName} size="xl" />
                 <div className="details-hero__text">
                   <h2>{drive.role}</h2>
+                  <TierBadge tier={drive.tier} />
                   <ul className="meta-list">
                     {drive.location && (
                       <li>
@@ -124,9 +127,10 @@ export default function DriveDetailsPage() {
               <ApplyPanel drive={drive} onApplied={reload} />
               <div className="card fit-card">
                 <p>
-                  <strong>Not sure you're ready?</strong> The AI coach compares your resume with this role.
+                  <strong>Prepare with AI.</strong> See how your resume fits this role, then sit a mock interview built from this posting.
                 </p>
                 <FitCheckButton target={{ driveId: drive._id }} title={`${drive.role} at ${drive.companyName}`} block />
+                <InterviewButton target={{ driveId: drive._id }} block />
               </div>
             </aside>
           </div>

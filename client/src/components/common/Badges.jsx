@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react';
+import { Clock, Gem } from 'lucide-react';
 import { STAGE_LABELS } from '../../utils/stages';
 import { formatDateTime, timeLeft } from '../../utils/format';
 
@@ -16,6 +16,19 @@ export function Badge({ tone = 'neutral', icon: Icon, children }) {
     <span className={`badge badge--tone-${tone}`}>
       {Icon && <Icon size={14} aria-hidden="true" />}
       {children}
+    </span>
+  );
+}
+
+const TIER_LABELS = { regular: 'Regular', dream: 'Dream', 'super-dream': 'Super Dream' };
+
+// Drive tier under the placement policy (Regular / Dream / Super Dream).
+export function TierBadge({ tier }) {
+  if (!tier) return null;
+  return (
+    <span className={`badge badge--tier-${tier}`} title="Placement tier, set by package">
+      {tier !== 'regular' && <Gem size={13} aria-hidden="true" />}
+      {TIER_LABELS[tier]}
     </span>
   );
 }
