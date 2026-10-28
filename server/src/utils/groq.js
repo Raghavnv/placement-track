@@ -11,7 +11,7 @@ const isConfigured = () => Boolean(env.groqApiKey);
 // The caller still cleans the result: models can drift from a schema.
 async function chatJson({ system, user, schemaName, schema, maxTokens = 4096 }) {
   if (!isConfigured()) {
-    throw new ApiError(503, 'AI_NOT_CONFIGURED', "The AI coach isn't set up yet. The Groq API key is missing on the server.");
+    throw new ApiError(503, 'AI_NOT_CONFIGURED', "AI features aren't set up yet. The Groq API key is missing on the server.");
   }
 
   let response;

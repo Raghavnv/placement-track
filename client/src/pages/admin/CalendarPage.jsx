@@ -46,7 +46,6 @@ export default function CalendarPage() {
   }, [data]);
 
   const clashes = days
-    .filter((d) => d.getMonth() === month.getMonth())
     .map((d) => ({ date: d, drives: (events.get(dayKey(d)) || []).filter((e) => e.kind === 'drive') }))
     .filter((d) => d.drives.length > 1);
 

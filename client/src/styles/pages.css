@@ -647,7 +647,7 @@
 .report-table th:first-child, .report-table td:first-child { padding-left: 0; }
 .report-table th:last-child, .report-table td:last-child { padding-right: 0; }
 .report-table th { background: none; }
-.report-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.report-table .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .report-table__muted { color: var(--color-text-subtle); font-size: var(--text-xs); }
 .report-table__flag { color: var(--color-danger); font-weight: 500; }
 .report-table__link { color: var(--color-text); font-weight: 500; }

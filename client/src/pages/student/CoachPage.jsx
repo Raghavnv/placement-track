@@ -219,7 +219,7 @@ export default function CoachPage() {
         <>
           {notConfigured ? (
             <div className="card">
-              <EmptyState icon={Sparkles} title="The AI coach isn't switched on yet" description={error.message} />
+              <EmptyState icon={Sparkles} title="AI features aren't switched on yet" description={error.message} />
             </div>
           ) : (
             error && (

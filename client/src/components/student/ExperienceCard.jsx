@@ -59,6 +59,7 @@ export default function ExperienceCard({ experience, onDelete, compact = false }
           {author?.name}
           {author?.branch ? ` · ${author.branch}` : ''}
           {author?.graduationYear ? ` ${author.graduationYear}` : ''} · {formatDate(experience.createdAt)}
+          {experience.anonymous && experience.mine && ' · Shown to students as anonymous'}
         </span>
         <span className="experience__actions">
           {onDelete && (experience.mine || onDelete.any) && (
