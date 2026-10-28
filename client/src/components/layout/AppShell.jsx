@@ -11,6 +11,7 @@ import {
   Megaphone,
   Menu,
   PlusCircle,
+  Sparkles,
   UserRound,
   X,
 } from 'lucide-react';
@@ -26,6 +27,7 @@ const NAV = {
     { to: '/student/drives', label: 'Drives', icon: Briefcase },
     { to: '/student/jobs', label: 'Jobs', icon: Globe },
     { to: '/student/applications', label: 'My applications', shortLabel: 'Board', icon: KanbanSquare },
+    { to: '/student/coach', label: 'Resume coach', icon: Sparkles, mobile: false }, // reached from Profile on phones
     { to: '/student/profile', label: 'My profile', shortLabel: 'Profile', icon: UserRound },
   ],
   admin: [
@@ -142,7 +144,7 @@ export default function AppShell({ variant }) {
 
       {variant === 'student' && (
         <nav className="bottom-nav" aria-label="Quick navigation">
-          {items.map(({ to, label, shortLabel, icon: Icon, end }) => (
+          {items.filter((item) => item.mobile !== false).map(({ to, label, shortLabel, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className="bottom-nav__link">
               <Icon size={22} aria-hidden="true" />
               <span>{shortLabel || label}</span>

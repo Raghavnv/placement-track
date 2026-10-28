@@ -24,4 +24,15 @@ const jobsLimiter = rateLimit({
     next(new ApiError(429, 'TOO_MANY_REQUESTS', 'Too many job searches. Please wait a few minutes and try again.')),
 });
 
-module.exports = { authLimiter, jobsLimiter };
+// Protects the Groq free-tier limits; saved answers don't count against them.
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skip: () => env.isTest,
+  handler: (req, res, next) =>
+    next(new ApiError(429, 'TOO_MANY_REQUESTS', 'Too many coach requests. Please wait a few minutes and try again.')),
+});
+
+module.exports = { authLimiter, jobsLimiter, aiLimiter };

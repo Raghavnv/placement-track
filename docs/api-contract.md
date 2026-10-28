@@ -69,6 +69,12 @@ Every error response has this shape:
 | 500 | `INTERNAL_ERROR` | Anything unexpected (never leak stack traces) |
 | 502 | `JOBS_PROVIDER_ERROR` | Adzuna (outside job listings) failed, timed out, or rejected our keys |
 | 503 | `JOBS_NOT_CONFIGURED` | `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` are not set on the server |
+| 404 | `NO_RESUME` | Coach asked before the student uploaded a resume |
+| 422 | `RESUME_NOT_PDF` | Coach needs a PDF resume (JPG photos have no readable text) |
+| 422 | `RESUME_UNREADABLE` | The PDF has almost no text (usually a scanned image) |
+| 429 | `AI_BUSY` | Groq's free-tier rate limit was hit; try again in a minute |
+| 502 | `AI_PROVIDER_ERROR` | Groq failed, timed out, rejected the key, or returned non-JSON |
+| 503 | `AI_NOT_CONFIGURED` | `GROQ_API_KEY` is not set on the server |
 
 ### 1.3 Pagination
 
@@ -231,6 +237,9 @@ For students, list and detail responses also include:
 | 28 | GET | `/api/admin/students` | Admin | Students directory (filters, season summary) |
 | 29 | GET | `/api/admin/students/:id` | Admin | One student's profile and applications |
 | 30 | GET | `/api/jobs` | Student | Outside job listings (Adzuna), scored against the profile |
+| 31 | GET | `/api/coach/review` | Student | Saved AI resume review for the current resume (no AI call) |
+| 32 | POST | `/api/coach/review` | Student | Run (or reuse) the AI resume review |
+| 33 | POST | `/api/coach/fit` | Student | AI "How do I fit?" for one drive or outside job |
 
 ---
 
@@ -444,6 +453,58 @@ Query (all optional):
 - `search.suggestions` are the student's role searches then top skills, for one-tap chips.
 
 Errors: `400 VALIDATION_ERROR`, `401`, `403` (admins), `429 TOO_MANY_REQUESTS`, `502 JOBS_PROVIDER_ERROR`, `503 JOBS_NOT_CONFIGURED`.
+
+---
+
+## 3c. Resume Coach (AI)
+
+AI feedback from an LLM hosted on [Groq](https://console.groq.com) (default `openai/gpt-oss-120b`, set by `GROQ_MODEL`). The server extracts the text of the student's **PDF** resume (the model reads text, not files) and sends it with their branch, target roles, interests and profile skills. Answers are saved in the `CoachResult` collection per resume upload: repeat calls return the saved answer until the student uploads a new resume or sends `refresh: true`. Rate-limited to 20 AI requests per 15 minutes per IP (`429 TOO_MANY_REQUESTS`).
+
+### 31. `GET /api/coach/review`  (Student)
+**200** `{ "review": Review | null }`. `null` when there's no resume or no review of the current resume yet. Never calls the AI.
+
+### 32. `POST /api/coach/review`  (Student)
+Body: `{ "refresh": false }` (optional; `true` asks the AI again).
+
+**200** `{ "review": Review }`
+```json
+{
+  "overallScore": 72,
+  "verdict": "Solid projects, but bullets describe duties instead of results.",
+  "scores": { "impact": 55, "clarity": 78, "structure": 80, "ats": 74 },
+  "strengths": ["Real deployed project"],
+  "fixes": [{ "section": "Projects", "issue": "No numbers", "before": "Worked on the backend…", "after": "Built the Flask API serving [X] daily orders" }],
+  "missingForGoals": ["System design basics"],
+  "skills": ["React", "Flask", "Docker", "SQL"],
+  "newSkills": ["Flask", "Docker"],
+  "reviewedAt": "2026-10-28T10:00:00.000Z",
+  "resumeUploadedAt": "2026-10-28T09:58:00.000Z"
+}
+```
+- Scores are integers 0-100. At most 4 `strengths`, 6 `fixes`, 5 `missingForGoals`, 25 `skills`.
+- `newSkills`: skills from `skills` not on the student's profile yet, recomputed on every call and capped so the profile stays at 25 skills or fewer. Add them with `PATCH /api/auth/me` (#18).
+
+Errors: `404 NO_RESUME`, `422 RESUME_NOT_PDF`, `422 RESUME_UNREADABLE`, `429 AI_BUSY`, `429 TOO_MANY_REQUESTS`, `502 AI_PROVIDER_ERROR`, `503 AI_NOT_CONFIGURED`, `401`, `403`.
+
+### 33. `POST /api/coach/fit`  (Student)
+Body: either `{ "driveId": "..." }` (a campus drive) or `{ "job": { "id", "title", "company", "location", "description", "skills" } }` (an outside job from #30, sent as listed since jobs aren't stored). Optional `"refresh": true`.
+
+**200** `{ "fit": Fit }`
+```json
+{
+  "fitScore": 64,
+  "verdict": "Apply after adding one Java project.",
+  "strengths": ["Deployed web app"],
+  "gaps": [{ "area": "Java", "howToClose": "Port the canteen API to Spring Boot this week" }],
+  "tailoredBullets": ["Built and deployed a REST API used by the campus canteen"],
+  "talkingPoints": ["How you deployed with Docker"],
+  "target": "Java Developer at Infosys",
+  "checkedAt": "2026-10-28T10:05:00.000Z"
+}
+```
+At most 4 `strengths`, 4 `gaps`, 3 `tailoredBullets`, 3 `talkingPoints`. Saved per drive/job per resume.
+
+Errors: as #32, plus `400 VALIDATION_ERROR` (neither or both of `driveId` / `job`), `404 NOT_FOUND` (unknown drive).
 
 ---
 
@@ -763,6 +824,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Resume Coach (Groq): new #31-33 `/api/coach/*`, `NO_RESUME`, `RESUME_NOT_PDF`, `RESUME_UNREADABLE`, `AI_BUSY`, `AI_PROVIDER_ERROR`, `AI_NOT_CONFIGURED` | Raghav |
 | 2026-10-28 | Outside jobs: new #30 `GET /api/jobs` (Adzuna), `502 JOBS_PROVIDER_ERROR`, `503 JOBS_NOT_CONFIGURED` | Raghav |
 | 2026-10-28 | Resume ZIP (#27) and students directory (#28-29) | Pranav |
 | 2026-10-28 | Bulk stage moves: new #26 | Pranav |

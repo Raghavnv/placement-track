@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle2, Circle, Pencil, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, Circle, Pencil, Save, Sparkles } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Combobox from '../../components/common/Combobox';
@@ -137,6 +137,12 @@ const chips = (items, render = (x) => x) =>
 export default function ProfilePage() {
   useDocumentTitle('My profile');
   const { user, updateUser } = useAuth();
+  const { hash } = useLocation();
+
+  // Links like /student/profile#resume (from the coach and profile strength) jump to that section.
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [hash]);
 
   return (
     <div className="page">
@@ -175,6 +181,16 @@ export default function ProfilePage() {
             <h2 id="resume-title" className="card__title">Resume</h2>
             <p className="card__note">Officers open this when they shortlist. PDF or JPG, under 2 MB.</p>
             <ResumeUpload resume={user.resume} onChange={updateUser} />
+            {user.resume && (
+              <Link to="/student/coach" className="coach-link">
+                <Sparkles size={18} aria-hidden="true" />
+                <span>
+                  <strong>Get AI feedback on this resume</strong>
+                  <small>A score, rewritten lines and skills to add to your profile</small>
+                </span>
+                <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+            )}
           </section>
 
           <section className="card" aria-labelledby="prefs-title">
