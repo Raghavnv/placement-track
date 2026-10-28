@@ -5,6 +5,12 @@ const clean = (params = {}) =>
   Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== undefined && v !== null && v !== false));
 
 export const listDrives = (params) => api.get('/drives', { params: clean(params) }).then((r) => r.data);
+// Drafts a drive from a job description: pass the pasted text, or a PDF File. Returns { draft, missing, warnings }.
+export const parseJobDescription = (input) =>
+  (typeof input === 'string'
+    ? api.post('/drives/parse-jd', { text: input }, { timeout: 90000 })
+    : api.post('/drives/parse-jd', input, { headers: { 'Content-Type': 'application/pdf' }, timeout: 90000 })
+  ).then((r) => r.data);
 export const getDrive = (id) => api.get(`/drives/${id}`).then((r) => r.data.drive);
 export const createDrive = (data) => api.post('/drives', data).then((r) => r.data.drive);
 export const updateDrive = (id, data) => api.put(`/drives/${id}`, data).then((r) => r.data.drive);

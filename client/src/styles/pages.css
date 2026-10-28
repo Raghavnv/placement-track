@@ -680,3 +680,4 @@
   .funnel__bar, .bar-list__bar, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 .notify-setting { display: grid; gap: var(--space-2); }
+.jd-warning { display: block; margin-top: 2px; font-weight: 400; }

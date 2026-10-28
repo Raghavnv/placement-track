@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { SearchX } from 'lucide-react';
+import { SearchX, Sparkles } from 'lucide-react';
+import Button from '../../components/common/Button';
+import { InlineAlert } from '../../components/common/States';
+import JdImportDialog from '../../components/admin/JdImportDialog';
 import PageHeader from '../../components/common/PageHeader';
 import { CardSkeleton, EmptyState, ErrorState } from '../../components/common/States';
 import DriveForm from '../../components/admin/DriveForm';
@@ -17,6 +21,17 @@ export default function DriveFormPage() {
   useDocumentTitle(isEdit ? `Edit ${drive?.companyName || 'drive'}` : 'New drive');
 
   const back = { to: '/admin/drives', label: 'All drives' };
+  const [jdOpen, setJdOpen] = useState(false);
+  const [imported, setImported] = useState(null); // { draft, missing, warnings, key }
+
+  const onDraft = (result) => {
+    const { draft } = result;
+    // Leave the CGPA cutoff blank when the JD doesn't give one, instead of the form's default.
+    const eligibility = { ...draft.eligibility, minCgpa: draft.eligibility.minCgpa ?? '', maxBacklogs: draft.eligibility.maxBacklogs ?? 0 };
+    setImported({ ...result, draft: { ...draft, eligibility }, key: Date.now() });
+    setJdOpen(false);
+    toast.success('Form filled from the job description. Review it before publishing.');
+  };
 
   const handleSubmit = async (payload) => {
     if (isEdit) {
@@ -46,12 +61,39 @@ export default function DriveFormPage() {
         back={back}
         title={isEdit ? `Edit ${drive?.companyName || 'drive'}` : 'Post a new drive'}
         description={isEdit ? 'Changes are visible to students immediately.' : 'Eligible students see it as soon as you save.'}
+        actions={
+          !isEdit && (
+            <Button variant="secondary" icon={Sparkles} onClick={() => setJdOpen(true)}>
+              Fill from job description
+            </Button>
+          )
+        }
       />
+      {imported && (imported.missing.length > 0 || imported.warnings.length > 0) && (
+        <InlineAlert tone="warning">
+          <strong>Check before publishing.</strong>
+          {imported.missing.length > 0 && <> The JD didn't state the {imported.missing.join(', ')}, so fill {imported.missing.length > 1 ? 'those' : 'it'} in.</>}
+          {imported.warnings.map((w) => (
+            <span key={w} className="jd-warning">
+              {w}
+            </span>
+          ))}
+        </InlineAlert>
+      )}
+      <JdImportDialog open={jdOpen} onClose={() => setJdOpen(false)} onDraft={onDraft} />
       {error && <ErrorState error={error} onRetry={reload} />}
       {isEdit && loading ? (
         <CardSkeleton lines={8} />
       ) : (
-        (!isEdit || drive) && <DriveForm drive={drive} onSubmit={handleSubmit} submitLabel={isEdit ? 'Save changes' : 'Publish drive'} />
+        (!isEdit || drive) && (
+          <DriveForm
+            key={imported?.key || 'blank'}
+            drive={drive}
+            prefill={imported?.draft}
+            onSubmit={handleSubmit}
+            submitLabel={isEdit ? 'Save changes' : 'Publish drive'}
+          />
+        )
       )}
     </div>
   );

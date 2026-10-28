@@ -1,4 +1,5 @@
-const router = require('express').Router();
+const express = require('express');
+const jd = require('../controllers/jdController');
 const drives = require('../controllers/driveController');
 const applications = require('../controllers/applicationController');
 const resumes = require('../controllers/resumeController');
@@ -6,6 +7,10 @@ const { bulkStageUpdate, resumeZip } = require('../validators/applicationSchemas
 const schemas = require('../validators/driveSchemas');
 const { validate, validateObjectId } = require('../middleware/validate');
 const { protect, requireRole } = require('../middleware/auth');
+const { aiLimiter } = require('../middleware/rateLimit');
+
+const router = express.Router();
+const JD_MAX_BYTES = 5 * 1024 * 1024;
 
 router.use(protect);
 
@@ -13,6 +18,15 @@ router
   .route('/')
   .get(validate(schemas.listQuery, 'query'), drives.listDrives)
   .post(requireRole('admin'), validate(schemas.createDrive), drives.createDrive);
+
+// Must come before /:id. Body: { text } as JSON, or a PDF as the raw body.
+router.post(
+  '/parse-jd',
+  requireRole('admin'),
+  aiLimiter,
+  express.raw({ type: 'application/pdf', limit: JD_MAX_BYTES }),
+  jd.parseJobDescription,
+);
 
 router
   .route('/:id')

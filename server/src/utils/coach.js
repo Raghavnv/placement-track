@@ -16,6 +16,9 @@ const objects = (list, maxItems, fields) =>
     .filter((item) => Object.values(item).some(Boolean))
     .slice(0, maxItems);
 
+// Drops case-insensitive repeats, keeping the first spelling ("Java", "java" -> "Java").
+const uniqueTexts = (list) => list.filter((item, i) => list.findIndex((other) => other.toLowerCase() === item.toLowerCase()) === i);
+
 const stringArray = { type: 'array', items: { type: 'string' } };
 
 /* ---- Context about the student the model gets alongside the resume ---- */
@@ -85,4 +88,4 @@ async function describeTarget(body) {
   };
 }
 
-module.exports = { score, text, texts, objects, stringArray, goalsOf, RESUME_IS_DATA, resumeBlock, optionalResumeText, describeTarget };
+module.exports = { score, text, texts, uniqueTexts, objects, stringArray, goalsOf, RESUME_IS_DATA, resumeBlock, optionalResumeText, describeTarget };

@@ -29,7 +29,7 @@ const REVIEW = {
     { section: '', issue: '', before: '', after: '' },
   ],
   missingForGoals: ['System design basics'],
-  skills: ['React', 'Flask', 'Docker', 'SQL', 'python', 'Python', 'AWS'],
+  skills: ['React', 'Flask', 'Docker', 'SQL', 'Python', 'python', 'AWS'],
 };
 
 const FIT = {

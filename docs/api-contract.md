@@ -77,6 +77,7 @@ Every error response has this shape:
 | 503 | `AI_NOT_CONFIGURED` | `GROQ_API_KEY` is not set on the server |
 | 400 | `NO_ANSWERS` | Finishing a mock interview with every answer blank |
 | 409 | `INTERVIEW_COMPLETED` | Saving an answer to an interview that is already graded |
+| 422 | `JD_TOO_SHORT` | A job description with too little readable text |
 
 ### 1.3 Pagination
 
@@ -253,6 +254,7 @@ For students, list and detail responses also include:
 | 42 | GET | `/api/admin/report` | Admin | Season placement report (NIRF / NAAC figures) |
 | 43 | GET | `/api/notifications` | Any | Newest 30 notifications and the unread count |
 | 44 | POST | `/api/notifications/read` | Any | Mark notifications read (some or all) |
+| 45 | POST | `/api/drives/parse-jd` | Admin | AI draft of a drive from a job description |
 
 ---
 
@@ -688,6 +690,24 @@ Deletes the drive **and all its applications**. The UI must show a confirmation 
 **200** `{ "message": "Drive deleted", "deletedApplications": 37 }`
 Errors: `400 INVALID_ID`, `401`, `403`, `404 NOT_FOUND`.
 
+### 45. `POST /api/drives/parse-jd`  (Admin)
+Body: `{ "text": "<pasted JD>" }` as JSON, **or** a PDF as the raw body with `Content-Type: application/pdf` (max 5 MB). The text goes to Groq, which extracts only what the JD states. Nothing is saved: the client fills the drive form with the draft and the officer publishes with #6.
+
+**200**
+```json
+{
+  "draft": {
+    "companyName": "Zoho Corporation", "role": "Member Technical Staff", "description": "…", "package": 8.4, "location": "Chennai",
+    "jobType": "full-time", "skills": ["Java", "SQL"],
+    "eligibility": { "minCgpa": 7.4, "branches": ["CSE", "ISE"], "graduationYear": 2027, "maxBacklogs": 0 },
+    "deadline": "2026-11-07T18:29:00.000Z", "driveDate": null
+  },
+  "missing": ["package"],
+  "warnings": ["CTC includes variable pay"]
+}
+```
+Unknown values are `null`. Dates are read as Indian time; past dates are dropped. `missing` lists required form fields the JD didn't give. Errors: `415 UNSUPPORTED_FILE_TYPE`, `422 JD_TOO_SHORT`, the AI errors from #32, `403`.
+
 ### 9. `POST /api/drives/:id/apply`  (Student)
 No body. Checks are done in this order: drive exists, then `status` is `open`, then the deadline has not passed, then the student is eligible, then they have not already applied.
 
@@ -940,6 +960,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Drive from JD: new #45, `JD_TOO_SHORT` | Raghav |
 | 2026-10-28 | Notifications: new #43-44, `User.emailNotifications` | Raghav |
 | 2026-10-28 | Placement report: new #42 | Raghav |
 | 2026-10-28 | Placement policy: drive `tier`, policy eligibility check, new #34-36; mock interviews: new #37-41, `NO_ANSWERS`, `INTERVIEW_COMPLETED` | Raghav |
