@@ -1,5 +1,5 @@
 // Tiny dependency-free confetti burst on a temporary canvas. Skipped for reduced-motion users.
-const COLORS = ['#cdf25c', '#ff5a36', '#4b32e6', '#f2a81d', '#16141d', '#8f5bf5'];
+const COLORS = ['#4f46e5', '#818cf8', '#17b26a', '#2e90fa', '#f79009', '#7a5af8'];
 
 export default function confetti({ particles = 140, duration = 2600 } = {}) {
   if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

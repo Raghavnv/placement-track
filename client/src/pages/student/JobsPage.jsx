@@ -99,12 +99,7 @@ export default function JobsPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="Beyond campus"
-        title={
-          <>
-            Jobs <mark>out there.</mark>
-          </>
-        }
+        title="Jobs"
         description="Live openings from across India, ranked against your profile. Separate from the drives your placement cell runs."
         actions={
           <Button as={Link} to="/onboarding?edit=1" variant="secondary" icon={SlidersHorizontal}>

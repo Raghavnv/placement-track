@@ -183,12 +183,7 @@ export default function CoachPage() {
   return (
     <div className="page">
       <PageHeader
-        eyebrow="AI resume coach"
-        title={
-          <>
-            Make your resume <mark>recruiter-ready.</mark>
-          </>
-        }
+        title="Resume coach"
         description="A score, line-by-line fixes and the skills your resume proves, tuned to the roles you want."
         actions={
           review && (
