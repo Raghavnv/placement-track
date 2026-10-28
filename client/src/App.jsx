@@ -27,6 +27,7 @@ import AnnouncementsPage from './pages/admin/AnnouncementsPage';
 import StudentsPage from './pages/admin/StudentsPage';
 import PolicyPage from './pages/admin/PolicyPage';
 import ReportPage from './pages/admin/ReportPage';
+import CalendarPage from './pages/admin/CalendarPage';
 import ExperiencesPage from './pages/ExperiencesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RouteError from './pages/RouteError';
@@ -97,6 +98,7 @@ const router = createBrowserRouter([
               { path: '/admin/announcements', element: <AnnouncementsPage /> },
               { path: '/admin/policy', element: <PolicyPage /> },
               { path: '/admin/report', element: <ReportPage /> },
+              { path: '/admin/calendar', element: <CalendarPage /> },
               { path: '/admin/experiences', element: <ExperiencesPage /> },
             ],
           },

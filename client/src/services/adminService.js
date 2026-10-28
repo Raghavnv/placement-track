@@ -14,3 +14,7 @@ export const listStudents = (params = {}) =>
   api.get('/admin/students', { params: Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== undefined)) }).then((r) => r.data);
 
 export const getStudent = (id) => api.get(`/admin/students/${id}`).then((r) => r.data);
+
+// Drives with a deadline or drive day in [from, to) (api-contract.md #54).
+export const getCalendar = (from, to) =>
+  api.get('/admin/calendar', { params: { from: from.toISOString(), to: to.toISOString() } }).then((r) => r.data.data);

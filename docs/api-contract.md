@@ -263,6 +263,7 @@ For students, list and detail responses also include:
 | 51 | PUT | `/api/resume-builder` | Student | Save the builder draft |
 | 52 | GET | `/api/resume-builder/pdf` | Student | The saved draft as a PDF download |
 | 53 | POST | `/api/resume-builder/use` | Student | Make the saved draft the student's resume |
+| 54 | GET | `/api/admin/calendar` | Admin | Drives with a deadline or drive day in a date range |
 
 ---
 
@@ -985,6 +986,9 @@ Every registered student with how they're doing this season.
 ```
 `counts` apply every filter except `status` and `resume`, so they can label those tabs. `bestOffer` is the highest offer package (LPA) or `null`.
 
+### 54. `GET /api/admin/calendar`  (Admin)
+Query: `from`, `to` (ISO dates, `to` after `from`, at most 62 days apart). **200** `{ "data": [{ "_id", "companyName", "role", "status", "jobType", "package", "deadline", "driveDate", "applicantCount" }] }`: every drive whose deadline or drive day falls in `[from, to)`, by deadline. The client flags days with two or more drive days as clashes. Errors: `400 VALIDATION_ERROR`, `403`.
+
 ### 42. `GET /api/admin/report`  (Admin)
 Query: `graduationYear` (optional batch). A student is **placed** by their best **full-time** offer; package figures use that one offer per placed student (as NIRF does). Internship offers are counted separately.
 
@@ -1015,6 +1019,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Officer calendar: new #54 | Raghav |
 | 2026-10-28 | Resume builder: new #50-53 | Raghav |
 | 2026-10-28 | Interview experiences: new #46-49 | Raghav |
 | 2026-10-28 | Drive from JD: new #45, `JD_TOO_SHORT` | Raghav |

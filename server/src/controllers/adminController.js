@@ -108,3 +108,14 @@ exports.stats = asyncHandler(async (req, res) => {
     })),
   });
 });
+
+// Drives with a deadline or drive day in [from, to), for the officer calendar.
+exports.calendar = asyncHandler(async (req, res) => {
+  const { from, to } = req.query;
+  const drives = await Drive.find({ $or: [{ deadline: { $gte: from, $lt: to } }, { driveDate: { $gte: from, $lt: to } }] })
+    .select('companyName role status jobType package deadline driveDate')
+    .sort({ deadline: 1 })
+    .lean();
+  const counts = await Application.countByDrive(drives.map((d) => d._id));
+  res.json({ data: drives.map((d) => ({ ...d, applicantCount: counts.get(d._id.toString()) || 0 })) });
+});

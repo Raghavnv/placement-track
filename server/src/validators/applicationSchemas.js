@@ -54,4 +54,10 @@ const statsQuery = z.object({
   graduationYear: optionalQuery(z.coerce.number().int().min(2020).max(2035)),
 });
 
-module.exports = { stageUpdate, bulkStageUpdate, resumeZip, notesUpdate, remindersQuery, statsQuery };
+const DAY_MS = 24 * 60 * 60 * 1000;
+const calendarQuery = z
+  .object({ from: z.coerce.date({ invalid_type_error: 'from must be a date' }), to: z.coerce.date({ invalid_type_error: 'to must be a date' }) })
+  .refine((q) => q.to > q.from, { path: ['to'], message: 'to must be after from' })
+  .refine((q) => q.to - q.from <= 62 * DAY_MS, { path: ['to'], message: 'Ask for at most 62 days at a time' });
+
+module.exports = { calendarQuery, stageUpdate, bulkStageUpdate, resumeZip, notesUpdate, remindersQuery, statsQuery };
