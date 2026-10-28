@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
+  BookOpen,
   Briefcase,
+  CalendarDays,
+  FileBarChart,
   Globe,
   GraduationCap,
   KanbanSquare,
@@ -22,6 +25,7 @@ import Logo from '../common/Logo';
 import { UserAvatar } from '../common/Avatar';
 import { IconButton } from '../common/Button';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from './NotificationBell';
 
 const NAV = {
   student: [
@@ -31,13 +35,17 @@ const NAV = {
     { to: '/student/applications', label: 'My applications', shortLabel: 'Board', icon: KanbanSquare },
     { to: '/student/coach', label: 'Resume coach', icon: Sparkles, mobile: false }, // reached from Profile on phones
     { to: '/student/interviews', label: 'Mock interviews', icon: MessagesSquare, mobile: false }, // reached from drives on phones
+    { to: '/student/experiences', label: 'Interview experiences', icon: BookOpen, mobile: false },
     { to: '/student/profile', label: 'My profile', shortLabel: 'Profile', icon: UserRound },
   ],
   admin: [
     { to: '/admin', label: 'Dashboard', icon: BarChart3, end: true },
     { to: '/admin/drives', label: 'Drives', icon: Briefcase, exclude: '/admin/drives/new' },
     { to: '/admin/drives/new', label: 'New drive', icon: PlusCircle },
+    { to: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
     { to: '/admin/students', label: 'Students', icon: GraduationCap },
+    { to: '/admin/report', label: 'Placement report', icon: FileBarChart },
+    { to: '/admin/experiences', label: 'Interview experiences', icon: BookOpen },
     { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
     { to: '/admin/policy', label: 'Placement policy', icon: Scale },
   ],
@@ -127,6 +135,7 @@ export default function AppShell({ variant }) {
             <Logo size={28} />
           </span>
           <div className="topbar__actions">
+            {variant === 'student' && <NotificationBell />}
             <ThemeToggle />
             {variant === 'student' ? (
               <Link to="/student/profile" className="topbar__avatar topbar__avatar--link" title="My profile">

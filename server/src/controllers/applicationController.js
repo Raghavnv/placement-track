@@ -1,6 +1,7 @@
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
-const { canTransition, emptyStageCounts, STAGE_LABELS, TRANSITIONS } = require('../utils/stages');
+const { canTransition, emptyStageCounts, stageNotice, STAGE_LABELS, TRANSITIONS } = require('../utils/stages');
+const { notify } = require('../utils/notify');
 const { eligibilityFilter } = require('../utils/eligibility');
 const { placementFor } = require('../utils/placement');
 const { buildCalendar } = require('../utils/ics');
@@ -72,6 +73,7 @@ exports.updateStage = asyncHandler(async (req, res) => {
     { path: 'drive', select: DRIVE_SUMMARY_FIELDS },
     { path: 'student', select: STUDENT_SUMMARY_FIELDS },
   ]);
+  await notify([application.student._id], stageNotice(stage, application.drive, remark));
 
   res.json({ application: withoutNotes(application) });
 });
@@ -84,7 +86,8 @@ function skipReason(current, target) {
 
 exports.bulkUpdateStage = asyncHandler(async (req, res) => {
   const { stage, remark, applicationIds, rollNumbers } = req.body;
-  if (!(await Drive.exists({ _id: req.params.id }))) throw new ApiError(404, 'NOT_FOUND', 'Drive not found');
+  const drive = await Drive.findById(req.params.id).select('companyName role').lean();
+  if (!drive) throw new ApiError(404, 'NOT_FOUND', 'Drive not found');
 
   const match = { drive: req.params.id };
   if (applicationIds) match._id = { $in: applicationIds };
@@ -114,6 +117,7 @@ exports.bulkUpdateStage = asyncHandler(async (req, res) => {
       { $set: { stage }, $push: { stageHistory: { stage, remark, changedBy: req.user._id, changedAt: new Date() } } },
     )
     : { modifiedCount: 0 };
+  if (modifiedCount) await notify(movable.map((a) => a.student._id), stageNotice(stage, drive, remark));
 
   res.json({ stage, moved: modifiedCount, skipped, notFound });
 });

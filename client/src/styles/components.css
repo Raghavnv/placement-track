@@ -128,7 +128,7 @@
 }
 .password-rules li.is-ok { color: var(--color-success); background: var(--color-success-soft); }
 
-.segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--radius-md); background: var(--color-surface-muted); border: 1px solid var(--color-border); }
+.segmented { justify-self: start; width: fit-content; display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--radius-md); background: var(--color-surface-muted); border: 1px solid var(--color-border); }
 .segmented__option { position: relative; }
 .segmented__option input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 .segmented__option span { display: block; padding: 6px 12px; border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: 500; color: var(--color-text-muted); transition: all var(--transition-fast); }

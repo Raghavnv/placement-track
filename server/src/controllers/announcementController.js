@@ -5,6 +5,7 @@ const Announcement = require('../models/Announcement');
 const Application = require('../models/Application');
 const Drive = require('../models/Drive');
 const User = require('../models/User');
+const { notify } = require('../utils/notify');
 
 const DRIVE_FIELDS = 'companyName role';
 
@@ -12,6 +13,12 @@ const DRIVE_FIELDS = 'companyName role';
 function audienceCount({ drive, stages }) {
   if (!drive) return User.countDocuments({ role: 'student' });
   return Application.countDocuments({ drive: drive._id || drive, ...(stages.length ? { stage: { $in: stages } } : {}) });
+}
+
+// The students who can see an announcement right now (for notifications).
+function audienceIds({ drive, stages }) {
+  if (!drive) return User.find({ role: 'student' }).distinct('_id');
+  return Application.find({ drive: drive._id || drive, ...(stages.length ? { stage: { $in: stages } } : {}) }).distinct('student');
 }
 
 // A student sees announcements for everyone, plus those for drives they applied to
@@ -58,6 +65,13 @@ exports.createAnnouncement = asyncHandler(async (req, res) => {
 
   const announcement = await Announcement.create({ ...req.body, createdBy: req.user._id });
   await announcement.populate('drive', DRIVE_FIELDS);
+  const { drive } = announcement;
+  await notify(await audienceIds(announcement), {
+    type: 'announcement',
+    title: drive ? `${drive.companyName}: ${announcement.title}` : announcement.title,
+    body: announcement.message.slice(0, 500),
+    link: drive ? `/student/drives/${drive._id}` : '/student',
+  });
   res.status(201).json({ announcement: { ...announcement.toJSON(), audienceCount: await audienceCount(announcement) } });
 });
 

@@ -59,6 +59,7 @@ const updateProfile = z
     jobTypes: uniqueList(z.enum(JOB_TYPES), 2, 'job types'),
     expectedPackage: z.coerce.number().min(0).max(200).nullable(),
     needsOnboarding: z.literal(false),
+    emailNotifications: z.boolean(),
   })
   .partial()
   .refine((body) => Object.keys(body).length > 0, { message: 'Send at least one field to update' });

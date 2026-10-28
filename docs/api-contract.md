@@ -77,6 +77,7 @@ Every error response has this shape:
 | 503 | `AI_NOT_CONFIGURED` | `GROQ_API_KEY` is not set on the server |
 | 400 | `NO_ANSWERS` | Finishing a mock interview with every answer blank |
 | 409 | `INTERVIEW_COMPLETED` | Saving an answer to an interview that is already graded |
+| 422 | `JD_TOO_SHORT` | A job description with too little readable text |
 
 ### 1.3 Pagination
 
@@ -250,6 +251,19 @@ For students, list and detail responses also include:
 | 39 | GET | `/api/interviews/:id` | Student | One interview (rubric hidden until graded) |
 | 40 | PUT | `/api/interviews/:id/answers/:index` | Student | Save one answer |
 | 41 | POST | `/api/interviews/:id/finish` | Student | Grade the interview and build the report |
+| 42 | GET | `/api/admin/report` | Admin | Season placement report (NIRF / NAAC figures) |
+| 43 | GET | `/api/notifications` | Any | Newest 30 notifications and the unread count |
+| 44 | POST | `/api/notifications/read` | Any | Mark notifications read (some or all) |
+| 45 | POST | `/api/drives/parse-jd` | Admin | AI draft of a drive from a job description |
+| 46 | GET | `/api/experiences` | Any | Interview experiences (filter by company, search) |
+| 47 | GET | `/api/experiences/companies` | Any | Companies with experiences, most written-about first |
+| 48 | POST | `/api/experiences` | Student | Share an interview experience |
+| 49 | DELETE | `/api/experiences/:id` | Author or Admin | Delete an experience |
+| 50 | GET | `/api/resume-builder` | Student | Saved builder draft (or a starter from the profile) |
+| 51 | PUT | `/api/resume-builder` | Student | Save the builder draft |
+| 52 | GET | `/api/resume-builder/pdf` | Student | The saved draft as a PDF download |
+| 53 | POST | `/api/resume-builder/use` | Student | Make the saved draft the student's resume |
+| 54 | GET | `/api/admin/calendar` | Admin | Drives with a deadline or drive day in a date range |
 
 ---
 
@@ -582,6 +596,73 @@ Grades the interview. **200** `{ "interview": Interview }` (completed). Finishin
 
 ---
 
+## 3f. Notifications
+
+Created automatically (no endpoint creates them directly) and kept for 90 days:
+
+| Trigger | Who is told | `type` | `link` |
+|---|---|---|---|
+| Officer moves an application (#13) or bulk-moves (#26) | The students moved, with the remark | `stage` | `/student/applications` |
+| Officer posts an announcement (#24) | Exactly the students who can see it (all students, or that drive's applicants at the chosen stages) | `announcement` | the drive, or `/student` |
+| Officer creates a drive (#6) | Students who are eligible (offer policy included) and match it 70% or more | `drive` | the drive |
+
+Students who haven't set `emailNotifications: false` (via #18 `PATCH /api/auth/me`) also get an email through Brevo when `BREVO_API_KEY` and `EMAIL_FROM` are set. Emails go out in the background; a failed email or notification never fails the officer's request.
+
+### 43. `GET /api/notifications`
+**200** `{ "data": [{ "_id", "type", "title", "body", "link", "readAt": null, "createdAt" }], "unreadCount": 3 }`, newest first, at most 30.
+
+### 44. `POST /api/notifications/read`
+Body: `{ "ids": ["..."] }` to mark those, or `{}` to mark all. **200** `{ "marked": 3 }`. Only the caller's own notifications change. Errors: `400 VALIDATION_ERROR`.
+
+---
+
+## 3g. Interview experiences
+
+Students write up a company's selection process round by round; everyone logged in can read them; the author and officers can delete. Company names are matched loosely (case, punctuation and words like "Pvt Ltd", "Corporation", "Technologies" are ignored), so `?company=ZOHO` finds "Zoho Corporation".
+
+### 46. `GET /api/experiences`
+Query: `company`, `search` (company or role), `page`, `limit`. **200** `{ "data": [Experience], "pagination" }`, newest first.
+```json
+{
+  "_id": "...", "companyName": "Zoho Corporation", "role": "Member Technical Staff", "drive": null, "year": 2026,
+  "result": "selected", "difficulty": 4, "anonymous": false, "mine": false,
+  "rounds": [{ "name": "Written test", "details": "…" }], "tips": "…",
+  "author": { "name": "Asha Rao", "branch": "CSE", "graduationYear": 2026 }, "createdAt": "…"
+}
+```
+`result`: `selected`, `not-selected`, `awaiting`. For anonymous posts `author.name` is `"Anonymous student"`, except for officers and the author.
+
+### 47. `GET /api/experiences/companies`
+**200** `{ "data": [{ "companyName": "Zoho Corporation", "count": 3 }] }` (top 30).
+
+### 48. `POST /api/experiences`  (Student)
+Body: `companyName`, `role`, `year`, `result`, `difficulty` (1-5), `rounds` (1-8 of `{ name, details }`; details 20+ characters), optional `tips`, `anonymous`, `driveId` (only a drive the student applied to, else `403`). **201** `{ "experience": Experience }`.
+
+### 49. `DELETE /api/experiences/:id`  (Author or Admin)
+**200** `{ "message": "Experience deleted" }`. Errors: `403` (someone else's), `404`.
+
+---
+
+## 3h. Resume builder
+
+A one-column, text-only A4 resume (best for applicant tracking systems and the Resume Coach), generated on the server with pdfkit. Name, email and phone always come from the profile; everything else is the saved draft.
+
+### 50. `GET /api/resume-builder`  (Student)
+**200** `{ "data": Draft, "updatedAt": "…" | null }`. With nothing saved, `data` is a starter from the profile (headline from branch and batch, one education entry from college and CGPA, profile skills) and `updatedAt` is `null`.
+
+Draft: `headline` (≤120), `links` (≤4 of `{ label, url }`), `summary` (≤600), `education` (≤4 of `{ institution, degree, years, score }`), `experience` (≤5 of `{ title, org, dates, bullets }`), `projects` (≤6 of `{ name, tech, link, bullets }`), `skills` (≤30), `achievements` (≤8), `certifications` (≤8). `bullets` ≤6 lines of ≤300 characters. Empty lines and links without a URL are dropped; repeated skills are removed.
+
+### 51. `PUT /api/resume-builder`  (Student)
+Body: Draft. **200** `{ "data": Draft, "updatedAt": "…" }` (the cleaned draft). Errors: `400 VALIDATION_ERROR`.
+
+### 52. `GET /api/resume-builder/pdf`  (Student)
+**200** `application/pdf`, `Content-Disposition: attachment; filename="<Name>_Resume.pdf"`. Characters the PDF standard fonts can't show are replaced (₹ becomes "Rs.").
+
+### 53. `POST /api/resume-builder/use`  (Student)
+Renders the saved draft and stores it as the student's resume, replacing any upload (same as #19). **200** `{ "user": User }` with the new `resume`.
+
+---
+
 ## 4. Drives
 
 ### 4. `GET /api/drives`
@@ -664,6 +745,24 @@ Deletes the drive **and all its applications**. The UI must show a confirmation 
 
 **200** `{ "message": "Drive deleted", "deletedApplications": 37 }`
 Errors: `400 INVALID_ID`, `401`, `403`, `404 NOT_FOUND`.
+
+### 45. `POST /api/drives/parse-jd`  (Admin)
+Body: `{ "text": "<pasted JD>" }` as JSON, **or** a PDF as the raw body with `Content-Type: application/pdf` (max 5 MB). The text goes to Groq, which extracts only what the JD states. Nothing is saved: the client fills the drive form with the draft and the officer publishes with #6.
+
+**200**
+```json
+{
+  "draft": {
+    "companyName": "Zoho Corporation", "role": "Member Technical Staff", "description": "…", "package": 8.4, "location": "Chennai",
+    "jobType": "full-time", "skills": ["Java", "SQL"],
+    "eligibility": { "minCgpa": 7.4, "branches": ["CSE", "ISE"], "graduationYear": 2027, "maxBacklogs": 0 },
+    "deadline": "2026-11-07T18:29:00.000Z", "driveDate": null
+  },
+  "missing": ["package"],
+  "warnings": ["CTC includes variable pay"]
+}
+```
+Unknown values are `null`. Dates are read as Indian time; past dates are dropped. `missing` lists required form fields the JD didn't give. Errors: `415 UNSUPPORTED_FILE_TYPE`, `422 JD_TOO_SHORT`, the AI errors from #32, `403`.
 
 ### 9. `POST /api/drives/:id/apply`  (Student)
 No body. Checks are done in this order: drive exists, then `status` is `open`, then the deadline has not passed, then the student is eligible, then they have not already applied.
@@ -887,6 +986,28 @@ Every registered student with how they're doing this season.
 ```
 `counts` apply every filter except `status` and `resume`, so they can label those tabs. `bestOffer` is the highest offer package (LPA) or `null`.
 
+### 54. `GET /api/admin/calendar`  (Admin)
+Query: `from`, `to` (ISO dates, `to` after `from`, at most 62 days apart). **200** `{ "data": [{ "_id", "companyName", "role", "status", "jobType", "package", "deadline", "driveDate", "applicantCount" }] }`: every drive whose deadline or drive day falls in `[from, to)`, by deadline. The client flags days with two or more drive days as clashes. Errors: `400 VALIDATION_ERROR`, `403`.
+
+### 42. `GET /api/admin/report`  (Admin)
+Query: `graduationYear` (optional batch). A student is **placed** by their best **full-time** offer; package figures use that one offer per placed student (as NIRF does). Internship offers are counted separately.
+
+**200**
+```json
+{
+  "generatedAt": "...", "graduationYear": 2027,
+  "policy": { "dreamMinPackage": 8, "superDreamMinPackage": 15 },
+  "summary": { "students": 120, "placed": 84, "placementRate": 70, "fullTimeOffers": 97, "internshipOffers": 12, "multipleOffers": 11, "companies": 23, "drives": 31, "applications": 860 },
+  "packages": { "highest": 24, "median": 6.5, "average": 7.42, "lowest": 3.5 },
+  "byBranch": [{ "branch": "CSE", "students": 40, "placed": 34, "rate": 85, "median": 8 }],
+  "byTier": [{ "tier": "regular", "label": "Regular", "students": 50 }],
+  "byCompany": [{ "companyName": "Infosys", "offers": 18, "highest": 6.5, "roles": ["Systems Engineer"] }],
+  "funnel": [{ "stage": "applied", "label": "Applied", "reached": 860, "percentOfApplied": 100 }],
+  "unplaced": [{ "_id": "...", "name": "...", "rollNumber": "21CS078", "branch": "CSE", "cgpa": 6.4, "backlogs": 2, "applications": 0, "active": 0 }]
+}
+```
+The client's **Download PDF** prints this page with a print stylesheet (A4, no app chrome).
+
 ### 29. `GET /api/admin/students/:id`  (Admin)
 **200** `{ "student": { /* User */ }, "applications": [ /* with drive summary and stageHistory; never notes */ ] }`, newest application first.
 Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, `403`.
@@ -898,6 +1019,12 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Officer calendar: new #54 | Raghav |
+| 2026-10-28 | Resume builder: new #50-53 | Raghav |
+| 2026-10-28 | Interview experiences: new #46-49 | Raghav |
+| 2026-10-28 | Drive from JD: new #45, `JD_TOO_SHORT` | Raghav |
+| 2026-10-28 | Notifications: new #43-44, `User.emailNotifications` | Raghav |
+| 2026-10-28 | Placement report: new #42 | Raghav |
 | 2026-10-28 | Placement policy: drive `tier`, policy eligibility check, new #34-36; mock interviews: new #37-41, `NO_ANSWERS`, `INTERVIEW_COMPLETED` | Raghav |
 | 2026-10-28 | Resume Coach (Groq): new #31-33 `/api/coach/*`, `NO_RESUME`, `RESUME_NOT_PDF`, `RESUME_UNREADABLE`, `AI_BUSY`, `AI_PROVIDER_ERROR`, `AI_NOT_CONFIGURED` | Raghav |
 | 2026-10-28 | Outside jobs: new #30 `GET /api/jobs` (Adzuna), `502 JOBS_PROVIDER_ERROR`, `503 JOBS_NOT_CONFIGURED` | Raghav |

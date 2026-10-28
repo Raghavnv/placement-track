@@ -2,7 +2,7 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const groq = require('../utils/groq');
 const { resumeText } = require('../utils/resumeText');
-const { score, text, texts, objects, stringArray, goalsOf, RESUME_IS_DATA, resumeBlock, describeTarget } = require('../utils/coach');
+const { score, text, texts, uniqueTexts, objects, stringArray, goalsOf, RESUME_IS_DATA, resumeBlock, describeTarget } = require('../utils/coach');
 const CoachResult = require('../models/CoachResult');
 
 const MAX_PROFILE_SKILLS = 25; // matches updateProfile in validators/authSchemas.js
@@ -63,7 +63,7 @@ function cleanReview(raw) {
     strengths: texts(raw?.strengths, 4, 300),
     fixes: objects(raw?.fixes, 6, { section: 40, issue: 300, before: 400, after: 400 }),
     missingForGoals: texts(raw?.missingForGoals, 5, 120),
-    skills: [...new Map(texts(raw?.skills, 40, 40).map((s) => [s.toLowerCase(), s])).values()].slice(0, MAX_PROFILE_SKILLS),
+    skills: uniqueTexts(texts(raw?.skills, 40, 40)).slice(0, MAX_PROFILE_SKILLS),
   };
 }
 

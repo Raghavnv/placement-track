@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, Circle, Pencil, Save, Sparkles } from 'lucide
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Combobox from '../../components/common/Combobox';
-import { TextField } from '../../components/common/Field';
+import { Switch, TextField } from '../../components/common/Field';
 import PlacementStatus from '../../components/student/PlacementStatus';
 import ProfileCard from '../../components/student/ProfileCard';
 import ResumeUpload from '../../components/student/ResumeUpload';
@@ -117,6 +117,29 @@ function ContactForm({ user, onSaved }) {
   );
 }
 
+function EmailNotifications({ user, onSaved }) {
+  const toast = useToast();
+  const [saving, setSaving] = useState(false);
+  const enabled = user.emailNotifications !== false;
+  const toggle = async (next) => {
+    setSaving(true);
+    try {
+      onSaved(await updateProfile({ emailNotifications: next }));
+      toast.success(next ? 'Email notifications on' : 'Email notifications off. You will still see them in the app.');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <div className={`notify-setting ${saving ? 'is-refreshing' : ''}`}>
+      <Switch label="Email me too" checked={enabled} onChange={toggle} />
+      <p className="field__hint">Stage changes, announcements and new drives that fit you always appear under the bell. This also sends them to {user.email}.</p>
+    </div>
+  );
+}
+
 function PreferenceRow({ label, children, empty }) {
   return (
     <div className="pref-row">
@@ -173,9 +196,17 @@ export default function ProfilePage() {
             <ContactForm user={user} onSaved={updateUser} />
           </section>
 
+          <section className="card" id="notifications" aria-labelledby="notify-title">
+            <h2 id="notify-title" className="card__title">Notifications</h2>
+            <EmailNotifications user={user} onSaved={updateUser} />
+          </section>
+
           <section className="card" id="resume" aria-labelledby="resume-title">
             <h2 id="resume-title" className="card__title">Resume</h2>
-            <p className="card__note">Officers open this when they shortlist. PDF or JPG, under 2 MB.</p>
+            <p className="card__note">
+              Officers open this when they shortlist. PDF or JPG, under 2 MB. No resume yet, or want a cleaner one?{' '}
+              <Link to="/student/resume-builder">Build it here</Link>.
+            </p>
             <ResumeUpload resume={user.resume} onChange={updateUser} />
             {user.resume && (
               <Link to="/student/coach" className="coach-link">

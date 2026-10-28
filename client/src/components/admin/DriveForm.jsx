@@ -74,10 +74,11 @@ function toPayload(form, isEdit) {
 const flattenServerErrors = (fieldErrors = {}) =>
   Object.fromEntries(Object.entries(fieldErrors).map(([key, msg]) => [key.replace('eligibility.', ''), msg]));
 
-export default function DriveForm({ drive, onSubmit, submitLabel }) {
+// `prefill` (a drive-shaped draft, e.g. from a job description) fills a new form; it still counts as unsaved.
+export default function DriveForm({ drive, prefill, onSubmit, submitLabel }) {
   const isEdit = Boolean(drive);
   const initial = useMemo(() => toForm(drive), [drive]);
-  const [form, setForm] = useState(initial);
+  const [form, setForm] = useState(() => (prefill ? toForm(prefill) : initial));
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [formError, setFormError] = useState('');

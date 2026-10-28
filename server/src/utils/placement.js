@@ -61,6 +61,28 @@ function message({ policy, offer }, min) {
   return `${held} By placement policy you can now apply only to ${TIER_LABELS[next]}+ full-time drives (₹${min} LPA and above). Internships stay open.`;
 }
 
+// placementFor for many students at once (two queries), as a Map of studentId -> { policy, offer }.
+// Enough for checkEligibility; skips the per-student message.
+async function placementsFor(studentIds) {
+  const [policy, offers] = await Promise.all([
+    getPolicy(),
+    Application.find({ student: { $in: studentIds }, stage: 'offer' }).populate('drive', 'companyName package jobType').lean(),
+  ]);
+  const best = new Map();
+  for (const a of offers) {
+    if (a.drive?.jobType !== 'full-time') continue;
+    const key = a.student.toString();
+    if (!best.has(key) || a.drive.package > best.get(key).package) best.set(key, a.drive);
+  }
+  return new Map(
+    studentIds.map((id) => {
+      const drive = best.get(id.toString());
+      const offer = drive && { companyName: drive.companyName, package: drive.package, tier: tierOf(drive.package, policy) };
+      return [id.toString(), { policy, offer: offer || null }];
+    }),
+  );
+}
+
 // One eligibility check row for the drive checklist, or null when the policy doesn't apply to this drive.
 function policyCheck(placement, drive) {
   if (!placement || drive.jobType !== 'full-time') return null;
@@ -83,4 +105,4 @@ function policyCondition(placement) {
   return { $or: [{ jobType: { $ne: 'full-time' } }, { package: { $gte: min } }] };
 }
 
-module.exports = { TIERS, TIER_LABELS, DEFAULT_POLICY, tierOf, getPolicy, bestOffer, placementFor, policyCheck, policyCondition };
+module.exports = { TIERS, TIER_LABELS, DEFAULT_POLICY, tierOf, getPolicy, bestOffer, placementFor, placementsFor, policyCheck, policyCondition };

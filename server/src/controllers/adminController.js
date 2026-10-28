@@ -3,20 +3,9 @@ const { emptyStageCounts, STAGE_LABELS } = require('../utils/stages');
 const Application = require('../models/Application');
 const Drive = require('../models/Drive');
 const User = require('../models/User');
+const { round, packageStats } = require('../utils/stats');
 
 const FUNNEL_STAGES = ['applied', 'aptitude', 'interview', 'offer'];
-const round = (n, places = 1) => Math.round(n * 10 ** places) / 10 ** places;
-
-function packageStats(packages) {
-  if (!packages.length) return { highest: 0, average: 0, median: 0 };
-  const sorted = [...packages].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return {
-    highest: sorted[sorted.length - 1],
-    average: round(sorted.reduce((sum, p) => sum + p, 0) / sorted.length, 2),
-    median: sorted.length % 2 ? sorted[mid] : round((sorted[mid - 1] + sorted[mid]) / 2, 2),
-  };
-}
 
 const lookupDrive = [
   { $lookup: { from: 'drives', localField: 'drive', foreignField: '_id', as: 'drive' } },
@@ -105,7 +94,7 @@ exports.stats = asyncHandler(async (req, res) => {
       studentsPlaced: placedIds.length,
     },
     placementRate: students ? round((placedIds.length / students) * 100) : 0,
-    packageStats: packageStats(offerPackages.map((o) => o.package)),
+    packageStats: (({ lowest, ...rest }) => rest)(packageStats(offerPackages.map((o) => o.package))),
     applicationsByStage,
     funnel,
     placedByBranch,
@@ -118,4 +107,15 @@ exports.stats = asyncHandler(async (req, res) => {
       applicants: upcomingCounts.get(d._id.toString()) || 0,
     })),
   });
+});
+
+// Drives with a deadline or drive day in [from, to), for the officer calendar.
+exports.calendar = asyncHandler(async (req, res) => {
+  const { from, to } = req.query;
+  const drives = await Drive.find({ $or: [{ deadline: { $gte: from, $lt: to } }, { driveDate: { $gte: from, $lt: to } }] })
+    .select('companyName role status jobType package deadline driveDate')
+    .sort({ deadline: 1 })
+    .lean();
+  const counts = await Application.countByDrive(drives.map((d) => d._id));
+  res.json({ data: drives.map((d) => ({ ...d, applicantCount: counts.get(d._id.toString()) || 0 })) });
 });

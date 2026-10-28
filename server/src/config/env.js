@@ -20,6 +20,9 @@ const env = {
   // Optional: without this the Resume Coach says it isn't set up. Free key at https://console.groq.com
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+  // Optional notification emails (Brevo). EMAIL_FROM like "PlacementTrack <noreply@yourcollege.edu>", a sender verified in Brevo.
+  brevoApiKey: process.env.BREVO_API_KEY,
+  emailFrom: process.env.EMAIL_FROM,
 };
 
 // Fail fast on boot instead of failing on the first request.
@@ -32,5 +35,8 @@ function assertEnv() {
     throw new Error('JWT_SECRET must be at least 32 characters in production');
   }
 }
+
+// Links in emails go to the first CLIENT_URL that isn't a wildcard (APP_URL overrides it).
+env.appUrl = (process.env.APP_URL || env.clientUrls.find((url) => !url.includes('*')) || '').replace(/\/$/, '');
 
 module.exports = { ...env, assertEnv };
