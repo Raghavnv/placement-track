@@ -40,6 +40,8 @@ Both Render and Vercel deploy the `main` branch, so a feature only goes live aft
 | `MONGO_URI` | Atlas connection string from step 1 | **you** |
 | `CLIENT_URL` | `https://<your-app>.vercel.app,https://<your-app>-*.vercel.app` | **you** (after step 3) |
 | `PORT` | do not set it | Render sets it automatically |
+| `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | keys from [developer.adzuna.com](https://developer.adzuna.com) | **you** (optional: Jobs tab) |
+| `GROQ_API_KEY` | key from [console.groq.com/keys](https://console.groq.com/keys) | **you** (optional: Resume Coach, How do I fit?, mock interviews) |
 
 `CLIENT_URL` is a comma-separated list of allowed CORS origins. `*` matches one part of the domain name, so `https://placement-track-*.vercel.app` also allows Vercel preview deployments.
 
