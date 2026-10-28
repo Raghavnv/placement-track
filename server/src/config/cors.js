@@ -11,5 +11,5 @@ module.exports = {
     if (!origin || allowed.some((rx) => rx.test(origin))) return callback(null, true);
     return callback(null, false);
   },
-  exposedHeaders: ['Content-Disposition'],
+  exposedHeaders: ['Content-Disposition', 'X-Resume-Count', 'X-Missing-Resume-Count'],
 };

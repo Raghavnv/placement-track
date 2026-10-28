@@ -217,6 +217,17 @@ For students, list and detail responses also include:
 | 16 | GET | `/api/admin/stats` | Admin | Dashboard statistics |
 | 17 | GET | `/api/applications/me/calendar.ics` | Student | Calendar file of deadlines and drive days |
 | 18 | PATCH | `/api/auth/me` | Student | Save onboarding answers / profile |
+| 19 | PUT | `/api/auth/me/resume` | Student | Upload or replace resume (PDF/JPG, max 2 MB) |
+| 20 | GET | `/api/auth/me/resume` | Student | Download own resume |
+| 21 | DELETE | `/api/auth/me/resume` | Student | Remove own resume |
+| 22 | GET | `/api/admin/students/:id/resume` | Admin | Open a student's resume |
+| 23 | GET | `/api/announcements` | Any | Announcements (students: only those meant for them) |
+| 24 | POST | `/api/announcements` | Admin | Post an announcement |
+| 25 | DELETE | `/api/announcements/:id` | Admin | Delete an announcement |
+| 26 | POST | `/api/drives/:id/applicants/stage` | Admin | Move many applicants at once (by id or roll number) |
+| 27 | POST | `/api/drives/:id/applicants/resumes` | Admin | ZIP of applicants' resumes |
+| 28 | GET | `/api/admin/students` | Admin | Students directory (filters, season summary) |
+| 29 | GET | `/api/admin/students/:id` | Admin | One student's profile and applications |
 
 ---
 
@@ -300,6 +311,85 @@ Saves onboarding answers or profile edits. Send any subset of these fields; anyt
 
 **200** `{ "user": { /* User */ } }`
 Errors: `400 VALIDATION_ERROR`, `401`, `403` (admin token).
+
+### 19. `PUT /api/auth/me/resume`  (Student)
+Uploads the student's resume, replacing any earlier one. The request body is the **raw file bytes** (not JSON or multipart), sent with the file's `Content-Type`; the original file name goes in the `name` query parameter.
+
+```
+PUT /api/auth/me/resume?name=Asha%20Rao%20Resume.pdf
+Content-Type: application/pdf
+
+<file bytes>
+```
+
+| Rule | |
+|---|---|
+| Type | PDF or JPG, detected from the file's first bytes (`%PDF-` / `FF D8 FF`), not from the name or header |
+| Size | max 2 MB |
+| `name` | optional; unsafe characters stripped, extension set from the detected type (default `resume.pdf`) |
+
+**200** `{ "user": { /* User, with resume: { fileName, mimeType, size, uploadedAt } */ } }`
+Errors: `400 VALIDATION_ERROR` (empty body), `413 PAYLOAD_TOO_LARGE`, `415 UNSUPPORTED_FILE_TYPE`, `401`, `403` (admin token).
+
+### 20. `GET /api/auth/me/resume`  (Student)
+**200** the file, with `Content-Type` set to its type and `Content-Disposition: inline; filename="<fileName>"`. The client fetches it as a blob (it needs the auth header) and opens it in a new tab.
+Errors: `404 NOT_FOUND` (nothing uploaded), `401`, `403`.
+
+### 21. `DELETE /api/auth/me/resume`  (Student)
+**200** `{ "user": { /* User, without resume */ } }`. Succeeds even if there was no resume.
+
+### 22. `GET /api/admin/students/:id/resume`  (Admin)
+Same response as #20, for any student. Applicant rows from #10 include `student.resume` (`{ fileName, mimeType, size, uploadedAt }`, missing when none), so the officer UI only shows *View* for students who uploaded one.
+Errors: `400 INVALID_ID`, `404 NOT_FOUND` (no such student, or no resume), `401`, `403` (student token).
+
+---
+
+## 3a. Announcements
+
+Notices from the placement cell: test venues, links, schedules, results. An announcement goes either to **every student** (`drive: null`) or to **one drive's applicants**, optionally only those whose current stage is in `stages`.
+
+### 23. `GET /api/announcements`
+Query: `drive` (optional, only that drive's announcements), `page`, `limit` (default 10, max 50).
+
+- **Student:** announcements with `drive: null`, plus those for drives they applied to where `stages` is empty or contains their current stage. No `createdBy`.
+- **Admin:** all announcements, each with `audienceCount` (how many students can see it now).
+
+**200**
+```json
+{
+  "data": [
+    {
+      "_id": "...",
+      "title": "Interview slots for Accenture",
+      "message": "Interviews are on Friday in the Placement Cell, Block C…",
+      "link": "https://forms.gle/…",
+      "drive": { "_id": "...", "companyName": "Accenture", "role": "Associate Software Engineer" },
+      "stages": ["interview"],
+      "createdAt": "2026-10-28T09:30:00.000Z",
+      "updatedAt": "2026-10-28T09:30:00.000Z",
+      "audienceCount": 4
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 1, "totalPages": 1 }
+}
+```
+Newest first. Errors: `400 VALIDATION_ERROR`, `401`.
+
+### 24. `POST /api/announcements`  (Admin)
+| Field | Rule |
+|---|---|
+| title | required, 3-120 chars |
+| message | required, 1-2000 chars |
+| link | optional; `http(s)://` URL, max 500 chars, or `""` |
+| drive | optional drive id; `null`/missing = every student |
+| stages | optional array of stages; only allowed with `drive`; empty = all applicants |
+
+**201** `{ "announcement": { /* as above, with audienceCount */ } }`
+Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (unknown drive), `401`, `403`.
+
+### 25. `DELETE /api/announcements/:id`  (Admin)
+**200** `{ "message": "Announcement deleted" }`. Errors: `400 INVALID_ID`, `404 NOT_FOUND`, `401`, `403`.
+Deleting a drive (#8) also deletes its announcements.
 
 ---
 
@@ -418,6 +508,45 @@ Query: `stage` (one stage key, optional), `search` (student name or roll number)
 Student `notes` are private and **never** included in admin responses.
 
 Errors: `400 INVALID_ID | VALIDATION_ERROR`, `401`, `403`, `404 NOT_FOUND`.
+
+### 26. `POST /api/drives/:id/applicants/stage`  (Admin)
+Moves many applicants of one drive to a stage in one request, following the same transition rules as #13. Pick them **either** by application id (ticked rows) **or** by roll number (a pasted shortlist), not both.
+
+```json
+{ "stage": "interview", "remark": "Cleared aptitude. Slots on Friday.", "rollNumbers": ["21CS045", "21cs012"] }
+```
+
+| Field | Rule |
+|---|---|
+| stage | a stage (see 1.4) |
+| remark | optional, max 300 chars; added to every moved applicant's `stageHistory` |
+| applicationIds | 1-500 application ids |
+| rollNumbers | 1-500 roll numbers; trimmed, upper-cased, de-duplicated, blanks dropped |
+
+Applicants whose current stage can't move to `stage` are left unchanged and listed in `skipped`. Ids or roll numbers that aren't applicants of this drive are listed in `notFound`.
+
+**200**
+```json
+{
+  "stage": "interview",
+  "moved": 36,
+  "skipped": [{ "applicationId": "...", "name": "Asha Rao", "rollNumber": "21CS045", "stage": "rejected", "reason": "Rejected is a final stage" }],
+  "notFound": ["21CS999"]
+}
+```
+Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (drive), `401`, `403`.
+
+### 27. `POST /api/drives/:id/applicants/resumes`  (Admin)
+Downloads one ZIP of resumes for sending to the company. Body picks who:
+
+| Body | Who |
+|---|---|
+| `{}` | every applicant of the drive |
+| `{ "stage": "interview" }` | applicants currently at that stage |
+| `{ "applicationIds": ["..."] }` | those applications (1-500) |
+
+**200** `application/zip`, `Content-Disposition: attachment; filename="<Company>_<Role>_resumes.zip"`. Files are named `<rollNumber>_<Name>.pdf|jpg`. If some picked applicants have no resume, the ZIP also has `no-resume.txt` listing them. Headers `X-Resume-Count` and `X-Missing-Resume-Count` give the two numbers (exposed to the browser via CORS).
+Errors: `400 VALIDATION_ERROR` (ids and stage together), `404 NOT_FOUND` (drive, or nobody picked has a resume), `401`, `403`.
 
 ---
 
@@ -538,6 +667,41 @@ Query: `graduationYear` (optional filter).
 
 Errors: `401`, `403`.
 
+### 28. `GET /api/admin/students`  (Admin)
+Every registered student with how they're doing this season.
+
+| Param | Description |
+|---|---|
+| search | name, roll number or email (case-insensitive) |
+| branch | branch code |
+| graduationYear | batch |
+| minCgpa | CGPA at least this |
+| status | `placed` (has an offer) or `unplaced` |
+| resume | `yes` or `no` |
+| sort | `rollNumber` (default), `name`, `-cgpa`, `-createdAt` |
+| page, limit | pagination (limit max 50) |
+
+**200**
+```json
+{
+  "data": [
+    {
+      "_id": "...", "name": "Asha Rao", "email": "asha@college.edu", "rollNumber": "21CS045", "branch": "CSE",
+      "cgpa": 8.4, "backlogs": 0, "graduationYear": 2027, "phone": "9876543210", "college": "RV College of Engineering",
+      "resume": { "fileName": "cv.pdf", "mimeType": "application/pdf", "size": 120000, "uploadedAt": "..." },
+      "applicationCount": 4, "activeCount": 2, "offerCount": 1, "bestOffer": 7.6
+    }
+  ],
+  "counts": { "all": 12, "placed": 6, "unplaced": 6, "noResume": 9 },
+  "pagination": { "page": 1, "limit": 15, "total": 12, "totalPages": 1 }
+}
+```
+`counts` apply every filter except `status` and `resume`, so they can label those tabs. `bestOffer` is the highest offer package (LPA) or `null`.
+
+### 29. `GET /api/admin/students/:id`  (Admin)
+**200** `{ "student": { /* User */ }, "applications": [ /* with drive summary and stageHistory; never notes */ ] }`, newest application first.
+Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, `403`.
+
 ---
 
 ## 7. Changelog
@@ -545,5 +709,9 @@ Errors: `401`, `403`.
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Resume ZIP (#27) and students directory (#28-29) | Pranav |
+| 2026-10-28 | Bulk stage moves: new #26 | Pranav |
+| 2026-10-28 | Announcements: new #23-25, drive delete removes its announcements | Pranav |
+| 2026-10-28 | Resume upload: new #19-21 `/auth/me/resume`, `User.resume`, `415 UNSUPPORTED_FILE_TYPE`; #22 officer resume view, `student.resume` in applicants | Pranav |
 | 2026-10-28 | Onboarding: `college` on register, `needsOnboarding`, new #18 `PATCH /auth/me`, drive `skills`, `matchScore`/`matchReasons`, `sort=match` | Raghav |
 | 2026-10-27 | Backend implemented. Added `ROLL_NUMBER_TAKEN`, `413`, `429`; students' default drive list hides past deadlines; `eligibilityChecks` on drive details; `stageHistory` in applicants; `funnel` in stats; new #17 calendar export; dev port 5050 | Raghav |

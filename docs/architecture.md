@@ -5,7 +5,8 @@
 | Layer | Technology | Why |
 |---|---|---|
 | Client | React 18 + Vite | Fast dev server, simple build |
-| Routing | React Router v6 | Nested and protected routes |
+| Routing | React Router v6 (`createBrowserRouter`) | Nested and protected routes; `useBlocker` for unsaved-changes prompts |
+| Icons | lucide-react | Consistent, tree-shaken SVG icons |
 | HTTP client | Axios | Interceptors for the token and errors |
 | State | React Context (auth) + local component state | Enough for this size; no Redux needed |
 | Styling | Plain CSS with design tokens (`client/src/styles/tokens.css`) | No framework lock-in; see `ui-design.md` |

@@ -46,6 +46,20 @@ const userSchema = new mongoose.Schema(
     jobTypes: { type: [{ type: String, enum: JOB_TYPES }], default: undefined },
     expectedPackage: { type: Number, min: 0, max: 200 },
     needsOnboarding: { type: Boolean },
+
+    // Details of the uploaded resume; the file itself is in the Resume collection.
+    resume: {
+      type: new mongoose.Schema(
+        {
+          fileName: { type: String, required: true, maxlength: 120 },
+          mimeType: { type: String, enum: ['application/pdf', 'image/jpeg'], required: true },
+          size: { type: Number, required: true },
+          uploadedAt: { type: Date, required: true },
+        },
+        { _id: false },
+      ),
+      default: undefined,
+    },
   },
   {
     timestamps: true,

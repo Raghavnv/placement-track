@@ -1,5 +1,8 @@
 const router = require('express').Router();
 const drives = require('../controllers/driveController');
+const applications = require('../controllers/applicationController');
+const resumes = require('../controllers/resumeController');
+const { bulkStageUpdate, resumeZip } = require('../validators/applicationSchemas');
 const schemas = require('../validators/driveSchemas');
 const { validate, validateObjectId } = require('../middleware/validate');
 const { protect, requireRole } = require('../middleware/auth');
@@ -26,5 +29,15 @@ router.get(
   validate(schemas.applicantsQuery, 'query'),
   drives.getApplicants,
 );
+
+router.post(
+  '/:id/applicants/stage',
+  validateObjectId(),
+  requireRole('admin'),
+  validate(bulkStageUpdate),
+  applications.bulkUpdateStage,
+);
+
+router.post('/:id/applicants/resumes', validateObjectId(), requireRole('admin'), validate(resumeZip), resumes.downloadDriveResumes);
 
 module.exports = router;
