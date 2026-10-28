@@ -250,6 +250,7 @@ For students, list and detail responses also include:
 | 39 | GET | `/api/interviews/:id` | Student | One interview (rubric hidden until graded) |
 | 40 | PUT | `/api/interviews/:id/answers/:index` | Student | Save one answer |
 | 41 | POST | `/api/interviews/:id/finish` | Student | Grade the interview and build the report |
+| 42 | GET | `/api/admin/report` | Admin | Season placement report (NIRF / NAAC figures) |
 
 ---
 
@@ -887,6 +888,25 @@ Every registered student with how they're doing this season.
 ```
 `counts` apply every filter except `status` and `resume`, so they can label those tabs. `bestOffer` is the highest offer package (LPA) or `null`.
 
+### 42. `GET /api/admin/report`  (Admin)
+Query: `graduationYear` (optional batch). A student is **placed** by their best **full-time** offer; package figures use that one offer per placed student (as NIRF does). Internship offers are counted separately.
+
+**200**
+```json
+{
+  "generatedAt": "...", "graduationYear": 2027,
+  "policy": { "dreamMinPackage": 8, "superDreamMinPackage": 15 },
+  "summary": { "students": 120, "placed": 84, "placementRate": 70, "fullTimeOffers": 97, "internshipOffers": 12, "multipleOffers": 11, "companies": 23, "drives": 31, "applications": 860 },
+  "packages": { "highest": 24, "median": 6.5, "average": 7.42, "lowest": 3.5 },
+  "byBranch": [{ "branch": "CSE", "students": 40, "placed": 34, "rate": 85, "median": 8 }],
+  "byTier": [{ "tier": "regular", "label": "Regular", "students": 50 }],
+  "byCompany": [{ "companyName": "Infosys", "offers": 18, "highest": 6.5, "roles": ["Systems Engineer"] }],
+  "funnel": [{ "stage": "applied", "label": "Applied", "reached": 860, "percentOfApplied": 100 }],
+  "unplaced": [{ "_id": "...", "name": "...", "rollNumber": "21CS078", "branch": "CSE", "cgpa": 6.4, "backlogs": 2, "applications": 0, "active": 0 }]
+}
+```
+The client's **Download PDF** prints this page with a print stylesheet (A4, no app chrome).
+
 ### 29. `GET /api/admin/students/:id`  (Admin)
 **200** `{ "student": { /* User */ }, "applications": [ /* with drive summary and stageHistory; never notes */ ] }`, newest application first.
 Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, `403`.
@@ -898,6 +918,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Placement report: new #42 | Raghav |
 | 2026-10-28 | Placement policy: drive `tier`, policy eligibility check, new #34-36; mock interviews: new #37-41, `NO_ANSWERS`, `INTERVIEW_COMPLETED` | Raghav |
 | 2026-10-28 | Resume Coach (Groq): new #31-33 `/api/coach/*`, `NO_RESUME`, `RESUME_NOT_PDF`, `RESUME_UNREADABLE`, `AI_BUSY`, `AI_PROVIDER_ERROR`, `AI_NOT_CONFIGURED` | Raghav |
 | 2026-10-28 | Outside jobs: new #30 `GET /api/jobs` (Adzuna), `502 JOBS_PROVIDER_ERROR`, `503 JOBS_NOT_CONFIGURED` | Raghav |

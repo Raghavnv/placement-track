@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import {
   BarChart3,
   Briefcase,
+  FileBarChart,
   Globe,
   GraduationCap,
   KanbanSquare,
@@ -38,6 +39,7 @@ const NAV = {
     { to: '/admin/drives', label: 'Drives', icon: Briefcase, exclude: '/admin/drives/new' },
     { to: '/admin/drives/new', label: 'New drive', icon: PlusCircle },
     { to: '/admin/students', label: 'Students', icon: GraduationCap },
+    { to: '/admin/report', label: 'Placement report', icon: FileBarChart },
     { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
     { to: '/admin/policy', label: 'Placement policy', icon: Scale },
   ],

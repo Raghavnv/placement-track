@@ -25,6 +25,7 @@ import ApplicantsPage from './pages/admin/ApplicantsPage';
 import AnnouncementsPage from './pages/admin/AnnouncementsPage';
 import StudentsPage from './pages/admin/StudentsPage';
 import PolicyPage from './pages/admin/PolicyPage';
+import ReportPage from './pages/admin/ReportPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RouteError from './pages/RouteError';
 
@@ -91,6 +92,7 @@ const router = createBrowserRouter([
               { path: '/admin/students', element: <StudentsPage /> },
               { path: '/admin/announcements', element: <AnnouncementsPage /> },
               { path: '/admin/policy', element: <PolicyPage /> },
+              { path: '/admin/report', element: <ReportPage /> },
             ],
           },
         ],
