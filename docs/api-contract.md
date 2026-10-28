@@ -259,6 +259,10 @@ For students, list and detail responses also include:
 | 47 | GET | `/api/experiences/companies` | Any | Companies with experiences, most written-about first |
 | 48 | POST | `/api/experiences` | Student | Share an interview experience |
 | 49 | DELETE | `/api/experiences/:id` | Author or Admin | Delete an experience |
+| 50 | GET | `/api/resume-builder` | Student | Saved builder draft (or a starter from the profile) |
+| 51 | PUT | `/api/resume-builder` | Student | Save the builder draft |
+| 52 | GET | `/api/resume-builder/pdf` | Student | The saved draft as a PDF download |
+| 53 | POST | `/api/resume-builder/use` | Student | Make the saved draft the student's resume |
 
 ---
 
@@ -638,6 +642,26 @@ Body: `companyName`, `role`, `year`, `result`, `difficulty` (1-5), `rounds` (1-8
 
 ---
 
+## 3h. Resume builder
+
+A one-column, text-only A4 resume (best for applicant tracking systems and the Resume Coach), generated on the server with pdfkit. Name, email and phone always come from the profile; everything else is the saved draft.
+
+### 50. `GET /api/resume-builder`  (Student)
+**200** `{ "data": Draft, "updatedAt": "…" | null }`. With nothing saved, `data` is a starter from the profile (headline from branch and batch, one education entry from college and CGPA, profile skills) and `updatedAt` is `null`.
+
+Draft: `headline` (≤120), `links` (≤4 of `{ label, url }`), `summary` (≤600), `education` (≤4 of `{ institution, degree, years, score }`), `experience` (≤5 of `{ title, org, dates, bullets }`), `projects` (≤6 of `{ name, tech, link, bullets }`), `skills` (≤30), `achievements` (≤8), `certifications` (≤8). `bullets` ≤6 lines of ≤300 characters. Empty lines and links without a URL are dropped; repeated skills are removed.
+
+### 51. `PUT /api/resume-builder`  (Student)
+Body: Draft. **200** `{ "data": Draft, "updatedAt": "…" }` (the cleaned draft). Errors: `400 VALIDATION_ERROR`.
+
+### 52. `GET /api/resume-builder/pdf`  (Student)
+**200** `application/pdf`, `Content-Disposition: attachment; filename="<Name>_Resume.pdf"`. Characters the PDF standard fonts can't show are replaced (₹ becomes "Rs.").
+
+### 53. `POST /api/resume-builder/use`  (Student)
+Renders the saved draft and stores it as the student's resume, replacing any upload (same as #19). **200** `{ "user": User }` with the new `resume`.
+
+---
+
 ## 4. Drives
 
 ### 4. `GET /api/drives`
@@ -991,6 +1015,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Resume builder: new #50-53 | Raghav |
 | 2026-10-28 | Interview experiences: new #46-49 | Raghav |
 | 2026-10-28 | Drive from JD: new #45, `JD_TOO_SHORT` | Raghav |
 | 2026-10-28 | Notifications: new #43-44, `User.emailNotifications` | Raghav |

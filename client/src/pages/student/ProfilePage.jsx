@@ -203,7 +203,10 @@ export default function ProfilePage() {
 
           <section className="card" id="resume" aria-labelledby="resume-title">
             <h2 id="resume-title" className="card__title">Resume</h2>
-            <p className="card__note">Officers open this when they shortlist. PDF or JPG, under 2 MB.</p>
+            <p className="card__note">
+              Officers open this when they shortlist. PDF or JPG, under 2 MB. No resume yet, or want a cleaner one?{' '}
+              <Link to="/student/resume-builder">Build it here</Link>.
+            </p>
             <ResumeUpload resume={user.resume} onChange={updateUser} />
             {user.resume && (
               <Link to="/student/coach" className="coach-link">

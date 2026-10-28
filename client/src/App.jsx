@@ -16,6 +16,7 @@ import ApplicationsPage from './pages/student/ApplicationsPage';
 import JobsPage from './pages/student/JobsPage';
 import ProfilePage from './pages/student/ProfilePage';
 import CoachPage from './pages/student/CoachPage';
+import ResumeBuilderPage from './pages/student/ResumeBuilderPage';
 import InterviewsPage from './pages/student/InterviewsPage';
 import InterviewRoomPage from './pages/student/InterviewRoomPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -73,6 +74,7 @@ const router = createBrowserRouter([
               { path: '/student/jobs', element: <JobsPage /> },
               { path: '/student/profile', element: <ProfilePage /> },
               { path: '/student/coach', element: <CoachPage /> },
+              { path: '/student/resume-builder', element: <ResumeBuilderPage /> },
               { path: '/student/interviews', element: <InterviewsPage /> },
               { path: '/student/interviews/:id', element: <InterviewRoomPage /> },
               { path: '/student/experiences', element: <ExperiencesPage /> },

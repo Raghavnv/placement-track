@@ -200,7 +200,12 @@ export default function CoachPage() {
             icon={FileText}
             title="Upload your resume first"
             description="The coach reads your resume PDF. Add it on your profile, then come back."
-            action={<Button as={Link} to="/student/profile#resume">Upload resume</Button>}
+            action={
+              <div className="empty-state__buttons">
+                <Button as={Link} to="/student/profile#resume">Upload resume</Button>
+                <Button as={Link} to="/student/resume-builder" variant="secondary">Build one</Button>
+              </div>
+            }
           />
         </div>
       ) : loading ? (
