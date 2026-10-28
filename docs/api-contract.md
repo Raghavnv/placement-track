@@ -255,6 +255,10 @@ For students, list and detail responses also include:
 | 43 | GET | `/api/notifications` | Any | Newest 30 notifications and the unread count |
 | 44 | POST | `/api/notifications/read` | Any | Mark notifications read (some or all) |
 | 45 | POST | `/api/drives/parse-jd` | Admin | AI draft of a drive from a job description |
+| 46 | GET | `/api/experiences` | Any | Interview experiences (filter by company, search) |
+| 47 | GET | `/api/experiences/companies` | Any | Companies with experiences, most written-about first |
+| 48 | POST | `/api/experiences` | Student | Share an interview experience |
+| 49 | DELETE | `/api/experiences/:id` | Author or Admin | Delete an experience |
 
 ---
 
@@ -604,6 +608,33 @@ Students who haven't set `emailNotifications: false` (via #18 `PATCH /api/auth/m
 
 ### 44. `POST /api/notifications/read`
 Body: `{ "ids": ["..."] }` to mark those, or `{}` to mark all. **200** `{ "marked": 3 }`. Only the caller's own notifications change. Errors: `400 VALIDATION_ERROR`.
+
+---
+
+## 3g. Interview experiences
+
+Students write up a company's selection process round by round; everyone logged in can read them; the author and officers can delete. Company names are matched loosely (case, punctuation and words like "Pvt Ltd", "Corporation", "Technologies" are ignored), so `?company=ZOHO` finds "Zoho Corporation".
+
+### 46. `GET /api/experiences`
+Query: `company`, `search` (company or role), `page`, `limit`. **200** `{ "data": [Experience], "pagination" }`, newest first.
+```json
+{
+  "_id": "...", "companyName": "Zoho Corporation", "role": "Member Technical Staff", "drive": null, "year": 2026,
+  "result": "selected", "difficulty": 4, "anonymous": false, "mine": false,
+  "rounds": [{ "name": "Written test", "details": "…" }], "tips": "…",
+  "author": { "name": "Asha Rao", "branch": "CSE", "graduationYear": 2026 }, "createdAt": "…"
+}
+```
+`result`: `selected`, `not-selected`, `awaiting`. For anonymous posts `author.name` is `"Anonymous student"`, except for officers and the author.
+
+### 47. `GET /api/experiences/companies`
+**200** `{ "data": [{ "companyName": "Zoho Corporation", "count": 3 }] }` (top 30).
+
+### 48. `POST /api/experiences`  (Student)
+Body: `companyName`, `role`, `year`, `result`, `difficulty` (1-5), `rounds` (1-8 of `{ name, details }`; details 20+ characters), optional `tips`, `anonymous`, `driveId` (only a drive the student applied to, else `403`). **201** `{ "experience": Experience }`.
+
+### 49. `DELETE /api/experiences/:id`  (Author or Admin)
+**200** `{ "message": "Experience deleted" }`. Errors: `403` (someone else's), `404`.
 
 ---
 
@@ -960,6 +991,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Interview experiences: new #46-49 | Raghav |
 | 2026-10-28 | Drive from JD: new #45, `JD_TOO_SHORT` | Raghav |
 | 2026-10-28 | Notifications: new #43-44, `User.emailNotifications` | Raghav |
 | 2026-10-28 | Placement report: new #42 | Raghav |

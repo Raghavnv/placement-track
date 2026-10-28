@@ -11,6 +11,7 @@ import ApplyPanel from '../../components/student/ApplyPanel';
 import AnnouncementsPanel from '../../components/student/AnnouncementsPanel';
 import FitCheckButton from '../../components/student/FitCheckButton';
 import InterviewButton from '../../components/student/InterviewButton';
+import SeniorExperiences from '../../components/student/SeniorExperiences';
 import useAsync from '../../hooks/useAsync';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { getDrive } from '../../services/driveService';
@@ -121,6 +122,8 @@ export default function DriveDetailsPage() {
                 <h2 id="about-title" className="card__title">About the role</h2>
                 <p className="prose">{drive.description || 'The placement cell has not added a description yet.'}</p>
               </section>
+
+              <SeniorExperiences companyName={drive.companyName} />
             </div>
 
             <aside className="details-aside">
