@@ -92,3 +92,10 @@ MONGO_URI="<atlas-uri>" ADMIN_SEED_PASSWORD="<strong password>" npm run seed
 - [ ] Logging in from the Vercel site works (if not: the browser console shows a CORS error → check `CLIENT_URL` has no trailing slash and matches exactly)
 - [ ] Student register → apply → admin moves stage → student sees the card move
 - [ ] No `.env` file is committed (`git ls-files | grep .env` shows only `.env.example`)
+
+
+## Vercel build allowance
+
+The free (Hobby) plan limits builds per day. `client/vercel.json` has an `ignoreCommand` so Vercel **only builds `main`, and only when something under `client/` changed**: pushes to feature branches and server- or docs-only commits are skipped. (Exit code 0 skips the build, 1 builds it.) Keep **one** Vercel project connected to the repo: every connected project builds every push. The production project is `placementrackering`, the domain listed in Render's `CLIENT_URL`.
+
+If a build is rate limited ("retry in 24 hours"), wait for the limit to reset, then in Vercel open **Deployments**, pick the latest `main` deployment and **Redeploy**.
