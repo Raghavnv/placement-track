@@ -12,6 +12,7 @@ const coachRoutes = require('./routes/coachRoutes');
 const placementRoutes = require('./routes/placementRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const experienceRoutes = require('./routes/experienceRoutes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -39,6 +40,7 @@ app.use('/api/coach', coachRoutes);
 app.use('/api/placement', placementRoutes);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/experiences', experienceRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
