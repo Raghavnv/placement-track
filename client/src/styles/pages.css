@@ -447,3 +447,29 @@
 .job-ticket__no-salary { font-size: 1.1rem; color: var(--color-text-muted); }
 .job-ticket__cta { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm); font-weight: 700; }
 .jobs-credit { font-size: var(--text-xs); color: var(--color-text-subtle); text-align: center; }
+
+/* ===== My profile ===== */
+.details-main > .card > .card__title { margin-bottom: var(--space-4); }
+.card__header--split { justify-content: space-between; }
+.card__header--split .card__title { margin: 0; }
+.card__note { margin-bottom: var(--space-4); font-size: var(--text-sm); color: var(--color-text-muted); }
+.detail-grid + .card__note { margin: var(--space-5) 0 0; }
+.detail-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.detail-grid dt, .pref-row dt { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-subtle); }
+.detail-grid dd { margin-top: 2px; font-weight: 600; overflow-wrap: anywhere; }
+.pref-list { display: grid; }
+.pref-row { display: grid; gap: var(--space-2); padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+.pref-row:first-child { border-top: 0; padding-top: 0; }
+@media (min-width: 640px) { .pref-row { grid-template-columns: 160px minmax(0, 1fr); align-items: start; } .pref-row dt { padding-top: 4px; } }
+.pref-row__empty { color: var(--color-text-subtle); }
+.profile-aside { display: grid; gap: var(--space-5); }
+.profile-strength { padding: var(--space-5); }
+.profile-strength__head { display: flex; align-items: baseline; justify-content: space-between; }
+.profile-strength__head strong { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: -0.04em; }
+.profile-strength__bar { height: 10px; margin: var(--space-3) 0 var(--space-4); border-radius: var(--radius-pill); background: var(--color-surface-muted); border: 1.5px solid var(--color-ink); overflow: hidden; }
+.profile-strength__bar span { display: block; height: 100%; background: var(--color-lime); transition: width var(--transition-base); }
+.profile-strength__list { display: grid; gap: var(--space-2); }
+.profile-strength__list li { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--color-text-muted); }
+.profile-strength__list li.is-done { color: var(--color-text); }
+.profile-strength__list li.is-done svg { color: var(--stage-offer-solid); }
+.topbar__avatar--link { border-radius: 50%; }

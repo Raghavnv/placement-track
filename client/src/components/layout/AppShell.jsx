@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Briefcase,
@@ -11,6 +11,7 @@ import {
   Megaphone,
   Menu,
   PlusCircle,
+  UserRound,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -25,6 +26,7 @@ const NAV = {
     { to: '/student/drives', label: 'Drives', icon: Briefcase },
     { to: '/student/jobs', label: 'Jobs', icon: Globe },
     { to: '/student/applications', label: 'My applications', shortLabel: 'Board', icon: KanbanSquare },
+    { to: '/student/profile', label: 'My profile', shortLabel: 'Profile', icon: UserRound },
   ],
   admin: [
     { to: '/admin', label: 'Dashboard', icon: BarChart3, end: true },
@@ -120,9 +122,16 @@ export default function AppShell({ variant }) {
           </span>
           <div className="topbar__actions">
             <ThemeToggle />
-            <span className="topbar__avatar" title={user.name}>
-              <UserAvatar name={user.name} size="sm" />
-            </span>
+            {variant === 'student' ? (
+              <Link to="/student/profile" className="topbar__avatar topbar__avatar--link" title="My profile">
+                <UserAvatar name={user.name} size="sm" />
+                <span className="sr-only">My profile</span>
+              </Link>
+            ) : (
+              <span className="topbar__avatar" title={user.name}>
+                <UserAvatar name={user.name} size="sm" />
+              </span>
+            )}
           </div>
         </header>
 
