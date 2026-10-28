@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Briefcase,
@@ -11,6 +11,8 @@ import {
   Megaphone,
   Menu,
   PlusCircle,
+  Sparkles,
+  UserRound,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -25,6 +27,8 @@ const NAV = {
     { to: '/student/drives', label: 'Drives', icon: Briefcase },
     { to: '/student/jobs', label: 'Jobs', icon: Globe },
     { to: '/student/applications', label: 'My applications', shortLabel: 'Board', icon: KanbanSquare },
+    { to: '/student/coach', label: 'Resume coach', icon: Sparkles, mobile: false }, // reached from Profile on phones
+    { to: '/student/profile', label: 'My profile', shortLabel: 'Profile', icon: UserRound },
   ],
   admin: [
     { to: '/admin', label: 'Dashboard', icon: BarChart3, end: true },
@@ -120,9 +124,16 @@ export default function AppShell({ variant }) {
           </span>
           <div className="topbar__actions">
             <ThemeToggle />
-            <span className="topbar__avatar" title={user.name}>
-              <UserAvatar name={user.name} size="sm" />
-            </span>
+            {variant === 'student' ? (
+              <Link to="/student/profile" className="topbar__avatar topbar__avatar--link" title="My profile">
+                <UserAvatar name={user.name} size="sm" />
+                <span className="sr-only">My profile</span>
+              </Link>
+            ) : (
+              <span className="topbar__avatar" title={user.name}>
+                <UserAvatar name={user.name} size="sm" />
+              </span>
+            )}
           </div>
         </header>
 
@@ -133,7 +144,7 @@ export default function AppShell({ variant }) {
 
       {variant === 'student' && (
         <nav className="bottom-nav" aria-label="Quick navigation">
-          {items.map(({ to, label, shortLabel, icon: Icon, end }) => (
+          {items.filter((item) => item.mobile !== false).map(({ to, label, shortLabel, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className="bottom-nav__link">
               <Icon size={22} aria-hidden="true" />
               <span>{shortLabel || label}</span>

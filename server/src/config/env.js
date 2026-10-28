@@ -17,6 +17,9 @@ const env = {
   adzunaAppId: process.env.ADZUNA_APP_ID,
   adzunaAppKey: process.env.ADZUNA_APP_KEY,
   adzunaCountry: process.env.ADZUNA_COUNTRY || 'in',
+  // Optional: without this the Resume Coach says it isn't set up. Free key at https://console.groq.com
+  groqApiKey: process.env.GROQ_API_KEY,
+  groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
 };
 
 // Fail fast on boot instead of failing on the first request.

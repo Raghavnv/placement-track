@@ -1,6 +1,7 @@
 import { Briefcase, Clock, ExternalLink, MapPin } from 'lucide-react';
 import { CompanyAvatar } from '../common/Avatar';
 import MatchRing from '../common/MatchRing';
+import FitCheckButton from './FitCheckButton';
 import { formatPackage, timeAgo } from '../../utils/format';
 
 const JOB_TYPE_LABELS = { 'full-time': 'Full-time', 'part-time': 'Part-time', contract: 'Contract', internship: 'Internship' };
@@ -11,15 +12,24 @@ function formatSalary({ salaryMin, salaryMax }) {
   return single ? formatPackage(single) : 'Salary not listed';
 }
 
-// An outside job as a ticket, like DriveCard, but it opens the listing on the company's site.
+// An outside job as a ticket, like DriveCard. The title link covers the card and opens the listing
+// on the company's site; "How do I fit?" sits above it, since a button can't live inside a link.
 export default function JobCard({ job }) {
   const hasSalary = Boolean(job.salaryMin || job.salaryMax);
+  const fitTarget = {
+    job: { id: job.id, title: job.title, company: job.company, location: job.location, description: job.description, skills: job.skills },
+  };
   return (
-    <a href={job.url} target="_blank" rel="noopener noreferrer" className="ticket job-ticket">
+    <article className="ticket job-ticket">
       <div className="ticket__top">
         <CompanyAvatar name={job.company} size="lg" />
         <div className="ticket__title">
-          <h3>{job.title}</h3>
+          <h3>
+            <a href={job.url} target="_blank" rel="noopener noreferrer" className="job-ticket__link">
+              {job.title}
+              <span className="sr-only"> (opens the listing in a new tab)</span>
+            </a>
+          </h3>
           <p>{job.company}</p>
         </div>
         <MatchRing score={job.matchScore} size={58} />
@@ -59,11 +69,13 @@ export default function JobCard({ job }) {
             </li>
           )}
         </ul>
-        <span className="job-ticket__cta">
-          Apply on company site <ExternalLink size={14} aria-hidden="true" />
-          <span className="sr-only">(opens in a new tab)</span>
-        </span>
+        <div className="job-ticket__actions">
+          <span className="job-ticket__cta" aria-hidden="true">
+            Apply on company site <ExternalLink size={14} />
+          </span>
+          <FitCheckButton target={fitTarget} title={`${job.title} at ${job.company}`} size="sm" />
+        </div>
       </div>
-    </a>
+    </article>
   );
 }

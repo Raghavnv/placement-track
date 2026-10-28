@@ -14,6 +14,8 @@ import DrivesPage from './pages/student/DrivesPage';
 import DriveDetailsPage from './pages/student/DriveDetailsPage';
 import ApplicationsPage from './pages/student/ApplicationsPage';
 import JobsPage from './pages/student/JobsPage';
+import ProfilePage from './pages/student/ProfilePage';
+import CoachPage from './pages/student/CoachPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ManageDrivesPage from './pages/admin/ManageDrivesPage';
 import DriveFormPage from './pages/admin/DriveFormPage';
@@ -64,6 +66,8 @@ const router = createBrowserRouter([
               { path: '/student/drives/:id', element: <DriveDetailsPage /> },
               { path: '/student/applications', element: <ApplicationsPage /> },
               { path: '/student/jobs', element: <JobsPage /> },
+              { path: '/student/profile', element: <ProfilePage /> },
+              { path: '/student/coach', element: <CoachPage /> },
             ],
           },
         ],

@@ -8,6 +8,7 @@ import { EligibilityBadge } from '../../components/student/DriveCard';
 import EligibilityChecklist from '../../components/student/EligibilityChecklist';
 import ApplyPanel from '../../components/student/ApplyPanel';
 import AnnouncementsPanel from '../../components/student/AnnouncementsPanel';
+import FitCheckButton from '../../components/student/FitCheckButton';
 import useAsync from '../../hooks/useAsync';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { getDrive } from '../../services/driveService';
@@ -121,6 +122,12 @@ export default function DriveDetailsPage() {
 
             <aside className="details-aside">
               <ApplyPanel drive={drive} onApplied={reload} />
+              <div className="card fit-card">
+                <p>
+                  <strong>Not sure you're ready?</strong> The AI coach compares your resume with this role.
+                </p>
+                <FitCheckButton target={{ driveId: drive._id }} title={`${drive.role} at ${drive.companyName}`} block />
+              </div>
             </aside>
           </div>
         )
