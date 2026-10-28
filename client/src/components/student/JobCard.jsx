@@ -2,6 +2,7 @@ import { Briefcase, Clock, ExternalLink, MapPin } from 'lucide-react';
 import { CompanyAvatar } from '../common/Avatar';
 import MatchRing from '../common/MatchRing';
 import FitCheckButton from './FitCheckButton';
+import InterviewButton from './InterviewButton';
 import { formatPackage, timeAgo } from '../../utils/format';
 
 const JOB_TYPE_LABELS = { 'full-time': 'Full-time', 'part-time': 'Part-time', contract: 'Contract', internship: 'Internship' };
@@ -16,8 +17,9 @@ function formatSalary({ salaryMin, salaryMax }) {
 // on the company's site; "How do I fit?" sits above it, since a button can't live inside a link.
 export default function JobCard({ job }) {
   const hasSalary = Boolean(job.salaryMin || job.salaryMax);
+  const salary = job.salaryMin && job.salaryMax ? (job.salaryMin + job.salaryMax) / 2 : job.salaryMin || job.salaryMax || null;
   const fitTarget = {
-    job: { id: job.id, title: job.title, company: job.company, location: job.location, description: job.description, skills: job.skills },
+    job: { id: job.id, title: job.title, company: job.company, location: job.location, description: job.description, skills: job.skills, salary },
   };
   return (
     <article className="ticket job-ticket">
@@ -73,7 +75,10 @@ export default function JobCard({ job }) {
           <span className="job-ticket__cta" aria-hidden="true">
             Apply on company site <ExternalLink size={14} />
           </span>
-          <FitCheckButton target={fitTarget} title={`${job.title} at ${job.company}`} size="sm" />
+          <span className="job-ticket__buttons">
+            <FitCheckButton target={fitTarget} title={`${job.title} at ${job.company}`} size="sm" />
+            <InterviewButton target={fitTarget} size="sm" label="Practice" />
+          </span>
         </div>
       </div>
     </article>

@@ -36,7 +36,10 @@ export function TextField({ id, label, error, hint, required, className, prefix,
   const fieldId = id || autoId;
   return (
     <FieldShell id={fieldId} label={label} error={error} hint={hint} required={required} className={className} aside={aside}>
-      <div className={`input-group ${prefix ? 'has-prefix' : ''} ${suffix ? 'has-suffix' : ''}`}>
+      <div
+        className={`input-group ${prefix ? 'has-prefix' : ''} ${suffix ? 'has-suffix' : ''}`}
+        style={typeof prefix === 'string' ? { '--prefix-chars': prefix.length } : undefined}
+      >
         {prefix && <span className="input-group__prefix">{prefix}</span>}
         <input
           id={fieldId}

@@ -16,12 +16,15 @@ import ApplicationsPage from './pages/student/ApplicationsPage';
 import JobsPage from './pages/student/JobsPage';
 import ProfilePage from './pages/student/ProfilePage';
 import CoachPage from './pages/student/CoachPage';
+import InterviewsPage from './pages/student/InterviewsPage';
+import InterviewRoomPage from './pages/student/InterviewRoomPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ManageDrivesPage from './pages/admin/ManageDrivesPage';
 import DriveFormPage from './pages/admin/DriveFormPage';
 import ApplicantsPage from './pages/admin/ApplicantsPage';
 import AnnouncementsPage from './pages/admin/AnnouncementsPage';
 import StudentsPage from './pages/admin/StudentsPage';
+import PolicyPage from './pages/admin/PolicyPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RouteError from './pages/RouteError';
 
@@ -68,6 +71,8 @@ const router = createBrowserRouter([
               { path: '/student/jobs', element: <JobsPage /> },
               { path: '/student/profile', element: <ProfilePage /> },
               { path: '/student/coach', element: <CoachPage /> },
+              { path: '/student/interviews', element: <InterviewsPage /> },
+              { path: '/student/interviews/:id', element: <InterviewRoomPage /> },
             ],
           },
         ],
@@ -85,6 +90,7 @@ const router = createBrowserRouter([
               { path: '/admin/drives/:id/applicants', element: <ApplicantsPage /> },
               { path: '/admin/students', element: <StudentsPage /> },
               { path: '/admin/announcements', element: <AnnouncementsPage /> },
+              { path: '/admin/policy', element: <PolicyPage /> },
             ],
           },
         ],

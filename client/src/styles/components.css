@@ -61,7 +61,7 @@
 
 /* ===== Forms ===== */
 .form-stack { display: grid; gap: var(--space-5); }
-.form-grid { display: grid; gap: var(--space-4); }
+.form-grid { display: grid; gap: var(--space-4); align-items: start; } /* fields with hints or errors don't push neighbours down */
 .form-grid__full { grid-column: 1 / -1; }
 @media (min-width: 640px) {
   .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -111,7 +111,7 @@
 }
 .input-group__prefix { left: 14px; }
 .input-group__suffix { right: 14px; }
-.input-group.has-prefix .input { padding-left: 32px; }
+.input-group.has-prefix .input { padding-left: calc(24px + var(--prefix-chars, 1) * 1ch); } /* room for "₹" or "+91" */
 .input-group.has-suffix .input { padding-right: 56px; }
 .input-group__toggle {
   pointer-events: auto; display: grid; place-items: center; width: 34px; height: 34px; margin-right: -6px;
@@ -424,6 +424,9 @@
 .badge--interview { color: var(--stage-interview); background: var(--stage-interview-soft); }
 .badge--offer     { color: #16141d; background: var(--color-lime); }
 .badge--rejected  { color: var(--stage-rejected);  background: var(--stage-rejected-soft); }
+.badge--tier-regular { color: var(--color-text-muted); background: var(--color-surface-muted); }
+.badge--tier-dream { color: var(--stage-interview); background: var(--stage-interview-soft); }
+.badge--tier-super-dream { color: #16141d; background: var(--stage-aptitude-solid); }
 .badge--tone-neutral { color: var(--color-text-muted); background: var(--color-surface-muted); }
 .badge--tone-primary { color: var(--color-primary); background: var(--color-primary-soft); }
 .badge--tone-lime { color: #16141d; background: var(--color-lime); }
@@ -541,7 +544,7 @@
 .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.035em; }
 @media (min-width: 768px) { .page-title { font-size: 2.6rem; } }
 .page-description { margin-top: var(--space-2); color: var(--color-text-muted); max-width: 60ch; }
-.back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: var(--space-3); font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); }
+.back-link { display: flex; width: fit-content; align-items: center; gap: 6px; margin-bottom: var(--space-3); font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); }
 .back-link:hover { color: var(--color-text); }
 
 /* ===== Logo ===== */

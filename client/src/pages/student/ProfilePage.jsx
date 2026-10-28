@@ -5,6 +5,7 @@ import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
 import Combobox from '../../components/common/Combobox';
 import { TextField } from '../../components/common/Field';
+import PlacementStatus from '../../components/student/PlacementStatus';
 import ProfileCard from '../../components/student/ProfileCard';
 import ResumeUpload from '../../components/student/ResumeUpload';
 import { useAuth } from '../../context/AuthContext';
@@ -215,6 +216,7 @@ export default function ProfilePage() {
 
         <aside className="details-aside profile-aside">
           <ProfileCard user={user} />
+          <PlacementStatus />
           <ProfileStrength user={user} />
         </aside>
       </div>

@@ -9,6 +9,8 @@ import { InlineAlert } from '../common/States';
 import DriveCard from '../student/DriveCard';
 import { BRANCHES, BRANCH_NAMES, GRADUATION_YEARS, JOB_TYPES } from '../../utils/constants';
 import { toLocalInputValue } from '../../utils/format';
+import useAsync from '../../hooks/useAsync';
+import { getPolicy, tierOf, TIER_LABELS } from '../../services/placementService';
 
 const toForm = (drive) => ({
   companyName: drive?.companyName || '',
@@ -79,6 +81,8 @@ export default function DriveForm({ drive, onSubmit, submitLabel }) {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [formError, setFormError] = useState('');
+  const { data: policyData } = useAsync(getPolicy, []);
+  const tier = policyData && form.jobType === 'full-time' && Number(form.package) > 0 ? tierOf(Number(form.package), policyData.policy) : null;
   const [submitting, setSubmitting] = useState(false);
   const allowLeave = useRef(false);
 
@@ -132,6 +136,7 @@ export default function DriveForm({ drive, onSubmit, submitLabel }) {
     companyName: form.companyName || 'Company name',
     role: form.role || 'Job role',
     package: Number(form.package) || 0,
+    tier,
     location: form.location,
     jobType: form.jobType,
     applicantCount: drive?.applicantCount || 0,
@@ -176,7 +181,19 @@ export default function DriveForm({ drive, onSubmit, submitLabel }) {
         <fieldset className="card form-section">
           <legend className="form-section__title">Compensation & location</legend>
           <div className="form-grid">
-            <TextField label="Package" required type="number" inputMode="decimal" step="0.1" min="0" placeholder="6.5" prefix="₹" suffix="LPA" {...bind('package')} />
+            <TextField
+              label="Package"
+              required
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              min="0"
+              placeholder="6.5"
+              prefix="₹"
+              suffix="LPA"
+              hint={tier ? `${TIER_LABELS[tier]} tier under your placement policy` : undefined}
+              {...bind('package')}
+            />
             <TextField label="Location" placeholder="Bengaluru" {...bind('location')} />
             <div className="field form-grid__full">
               <span className="field__label">Job type</span>
