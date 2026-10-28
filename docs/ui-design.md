@@ -10,7 +10,27 @@ Two people are building the UI on separate branches. This guide makes sure the s
 4. **Forgiving.** Confirm anything destructive. Keep form input when a request fails. Warn before leaving unsaved notes.
 5. **Consistent.** The same component looks and behaves the same on student and admin pages.
 
-## 2. Visual language
+## 2. Visual identity: "on track" (current)
+
+The product is named after a track, so the identity is built on one: **a metro line**. Applications are trains moving through stations (Applied → Aptitude → Interview → Offer). The line appears on the dashboard ("Your track"), on every Kanban card (mini track), in the application timeline and in the onboarding progress.
+
+| Element | Rule |
+|---|---|
+| Palette | Warm paper `#f3efe6`, ink `#16141d`, **lime** `#cdf25c` for "good/next/you", **coral** `#ff5a36` for urgency. Stage colours are kept for data. Dark theme inverts ink and paper; hard shadows become lime. |
+| Type | **Bricolage Grotesque** for headlines (tight tracking, 800), **Geist** for UI text, **Geist Mono** for numbers, labels and countdowns. |
+| Emphasis | One `<mark>` highlighter phrase per headline ("Find your <mark>next offer.</mark>"). Never more than one. |
+| Depth | Chunky 1.5px ink outlines and **hard offset shadows** on interactive things (buttons, tickets, tiles). Hover = lift up-left onto the shadow. Static containers stay flat. |
+| Stickers | Small rotated mono labels ("Closing soon", "Placement season is live") for status and personality. Use sparingly. |
+| Drive cards | "Tickets" with a perforated tear line: who/what above, money/time below. |
+| Delight | Confetti the first time a student sees a new offer; scanning animation before match results; marquee of company tickets on auth pages. All respect `prefers-reduced-motion`. |
+| Texture | A subtle paper grain over the whole app (`body::before`). |
+
+### Onboarding flow
+`/register` (name, **college** search, email, password) → academics (account is created here) → `/onboarding`: skills (branch-aware suggestions + free text) → interests (emoji tiles) → roles (icon tiles, max 5) → preferences (job type, cities, package slider) → matching animation → ranked matches with % and reasons. A live "student ID" card fills in on the right as they answer. New students are redirected to `/onboarding` until they finish or skip; "Edit skills & preferences" on the dashboard reopens it.
+
+> Sections 3–8 below describe layouts, states and accessibility rules; they still apply. Colour hex values in the old table are superseded by `client/src/styles/tokens.css`.
+
+## 2b. Visual language (original v1, kept for reference)
 
 ### 2.1 Colour
 
@@ -211,7 +231,7 @@ Infosys · Systems Engineer                                   37 applicants
 │ Asha Rao     │ 21CS045  │ CSE  │ 8.4  │ 28 Oct       │ [Aptitude] [Move to ▾]   │
 └──────────────┴──────────┴──────┴──────┴──────────────┴──────────────────────────┘
 ```
-"Move to ▾" only lists valid next stages (e.g. from Aptitude: Interview, Reject). Choosing **Reject** opens a small confirm dialog with an optional remark. Advancing applies immediately, shows a toast with **Undo** for 5 seconds (Undo is client-side: it delays the PATCH), and shows an optional remark field in a popover.
+"Move to" shows one button for the next stage (e.g. **Interview →**) plus a **Reject** button. Only valid next stages are offered. Both open a small dialog showing `current stage → new stage` with an optional remark that appears on the student's timeline. Rejection is marked as final. Stage changes can't be undone (the API only moves forward), so the dialog is the safety net.
 
 ## 5. Components and states checklist
 
@@ -226,7 +246,23 @@ Every data-driven view must handle **all four states**:
 
 Buttons: `primary` (one per view), `secondary` (outlined), `ghost` (text), `danger`. Height 40px (44px on touch screens), with a visible `:focus-visible` ring.
 
-## 6. Accessibility checklist (check every PR)
+## 6. Implemented extras
+
+| Feature | Where | Why |
+|---|---|---|
+| **Dark mode** | Theme toggle in the top bar and on auth pages; follows the system setting by default | Late-night prep sessions; every token has a dark value in `tokens.css` |
+| **Company monograms** | `CompanyAvatar`: initials on a colour derived from the company name | Drives are recognisable at a glance without logos |
+| **Progress dots** on Kanban cards | `ApplicationCard` | Shows how far each application got, including where a rejection happened |
+| **Calendar sync** | "Sync to calendar" on the dashboard and board | Deadlines and drive days show up in Google or Apple Calendar with alerts |
+| **Placement funnel** | Admin dashboard | Shows which round students drop out at |
+| **Student preview** | Drive form sidebar | The officer sees exactly how the drive card will look to students |
+| **"Waking up the server" banner** | Global | Explains the Render free-tier cold start instead of looking broken |
+| **`/` to search** | Drives, admin drives, applicants | Keyboard shortcut familiar from GitHub and YouTube |
+| **Shareable filters** | Drives and applicants keep filters in the URL | Back/forward and copied links keep the same view |
+| **CSV export** | Applicants page | Share a shortlist with the company |
+| **Unsaved-changes guards** | Notes drawer and drive form | No lost work |
+
+## 7. Accessibility checklist (check every PR)
 
 - [ ] All text meets 4.5:1 contrast (the tokens already do; don't put muted text on coloured backgrounds)
 - [ ] Every input has a `<label>`; errors are linked with `aria-describedby`
@@ -237,7 +273,7 @@ Buttons: `primary` (one per view), `secondary` (outlined), `ghost` (text), `dang
 - [ ] Animations respect `prefers-reduced-motion`
 - [ ] Touch targets are at least 44×44px on mobile
 
-## 7. Microcopy
+## 8. Microcopy
 
 | Situation | Text |
 |---|---|

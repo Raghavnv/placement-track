@@ -5,7 +5,8 @@
 | Layer | Technology | Why |
 |---|---|---|
 | Client | React 18 + Vite | Fast dev server, simple build |
-| Routing | React Router v6 | Nested and protected routes |
+| Routing | React Router v6 (`createBrowserRouter`) | Nested and protected routes; `useBlocker` for unsaved-changes prompts |
+| Icons | lucide-react | Consistent, tree-shaken SVG icons |
 | HTTP client | Axios | Interceptors for the token and errors |
 | State | React Context (auth) + local component state | Enough for this size; no Redux needed |
 | Styling | Plain CSS with design tokens (`client/src/styles/tokens.css`) | No framework lock-in; see `ui-design.md` |
@@ -23,10 +24,10 @@
 │  - Admin pages           │  Bearer <JWT>     │  controllers → models       │ ◀─────────────── │  drives    │
 │  - AuthContext + axios   │ ◀───────────────  │  central error handler      │                  │  applica-  │
 └──────────────────────────┘                   └─────────────────────────────┘                  │  tions     │
-       :5173 (dev)                                     :5000                                    └────────────┘
+       :5173 (dev)                                     :5050                                    └────────────┘
 ```
 
-In development, Vite proxies `/api/*` to `http://localhost:5000`, so the client always calls relative `/api/...` URLs.
+In development, Vite proxies `/api/*` to `http://localhost:5050`, so the client always calls relative `/api/...` URLs.
 
 ## 3. Folder layout
 
@@ -34,7 +35,7 @@ In development, Vite proxies `/api/*` to `http://localhost:5000`, so the client 
 placement-track/
 ├── client/                         # React (Vite) app
 │   ├── index.html
-│   ├── vite.config.js              # dev proxy /api -> :5000
+│   ├── vite.config.js              # dev proxy /api -> :5050
 │   └── src/
 │       ├── main.jsx                # entry; imports tokens.css + global.css
 │       ├── App.jsx                 # router (admin-ui owns)
@@ -84,7 +85,7 @@ Conventions:
 - Controllers never call `res.status(500)` themselves. They `throw new ApiError(...)` or let the error bubble up through `asyncHandler`.
 - Mongoose `CastError` → `400 INVALID_ID`; `ValidationError` → `400 VALIDATION_ERROR`; duplicate key `11000` → `409`.
 - Stage rules live in `utils/stages.js`; eligibility rules live in `utils/eligibility.js` (a pure function, unit-tested).
-- Tests import `app.js` (not `server.js`) and use a separate test database (`MONGO_URI` ending in `-test`, or `mongodb-memory-server` if the backend owner adds it).
+- Tests import `app.js` (not `server.js`) and run against an in-memory MongoDB (`mongodb-memory-server`, started once in `tests/setup/globalSetup.js`). Each test file gets its own database, and collections are cleared after every test.
 
 ## 5. Client architecture
 

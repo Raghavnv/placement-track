@@ -13,6 +13,8 @@ MongoDB with Mongoose. The database is `placement-track` and has three collectio
 - One **student** has many **applications**; one **drive** has many **applications**.
 - `Application` is the join between a student and a drive. It is **unique per (student, drive)**.
 - Deleting a drive deletes its applications (done in the controller with `Application.deleteMany({ drive })`).
+- One **admin** posts many **announcements**; an announcement targets every student (`drive: null`) or one **drive**'s applicants. Deleting a drive deletes its announcements.
+- One **student** has at most one **resume** (`Resume.student -> User._id`, unique). The file's details are copied onto `User.resume` for display.
 
 ---
 
@@ -31,6 +33,15 @@ MongoDB with Mongoose. The database is `placement-track` and has three collectio
 | `backlogs` | Number | no | integer, min 0, default 0 | Active backlogs |
 | `graduationYear` | Number | students | 2020-2035 | |
 | `phone` | String | no | 10 digits | |
+| `college` | String | students (on register) | max 120 | |
+| `skills` | [String] | no | max 25, each ≤ 40 chars | Onboarding answer, used for match scores |
+| `interests` | [String] | no | enum of interest keys | See `utils/profileOptions.js` |
+| `preferredRoles` | [String] | no | enum of role keys | See `utils/profileOptions.js` |
+| `preferredLocations` | [String] | no | max 8 | |
+| `jobTypes` | [String] | no | `full-time`, `internship` | |
+| `expectedPackage` | Number | no | 0-200 (LPA) | |
+| `needsOnboarding` | Boolean | no | `true` on register, `false` once onboarding is done | Missing = no onboarding needed (older accounts) |
+| `resume` | Object | no | `{ fileName, mimeType, size, uploadedAt }`; `mimeType` is `application/pdf` or `image/jpeg` | Details of the uploaded resume; missing = none. The file is in `resumes` |
 | `createdAt` / `updatedAt` | Date | auto | | |
 
 Indexes: `{ email: 1 }` unique, `{ rollNumber: 1 }` unique sparse, `{ role: 1 }`.
@@ -51,6 +62,7 @@ Model notes:
 | `package` | Number | yes | > 0, <= 200 | CTC in LPA |
 | `location` | String | no | max 100 chars | |
 | `jobType` | String | yes | enum `full-time`, `internship` | |
+| `skills` | [String] | no | max 15, default `[]` | Skill tags used for match scores |
 | `eligibility` | Object (subdocument) | yes | | See below |
 | `eligibility.minCgpa` | Number | yes | 0-10, default 0 | |
 | `eligibility.branches` | [String] | no | branch enum; default `[]` | Empty = open to all branches |
@@ -104,6 +116,36 @@ const TRANSITIONS = {
   rejected: [],
 };
 ```
+
+---
+
+## 4. `Resume`  (collection: `resumes`)
+
+| Field | Type | Required | Constraints / default | Notes |
+|---|---|---|---|---|
+| `_id` | ObjectId | auto | | |
+| `student` | ObjectId → User | yes | **unique** | One resume per student; uploading again replaces it |
+| `data` | Buffer | yes | max 2 MB | The file bytes (PDF or JPG) |
+| `createdAt` / `updatedAt` | Date | auto | | |
+
+Kept apart from `users` so loading a user never loads the file. Stored in MongoDB because Render's free tier has no persistent disk.
+
+---
+
+## 5. `Announcement`  (collection: `announcements`)
+
+| Field | Type | Required | Constraints / default | Notes |
+|---|---|---|---|---|
+| `_id` | ObjectId | auto | | |
+| `title` | String | yes | trim, 3-120 chars | |
+| `message` | String | yes | trim, max 2000 chars | |
+| `link` | String | no | max 500, default `""` | `http(s)` URL: test link, form, venue map |
+| `drive` | ObjectId → Drive | no | default `null` | `null` = every student |
+| `stages` | [String] | no | stage enum, default `[]` | With a drive: only applicants currently at these stages; empty = all applicants |
+| `createdBy` | ObjectId → User | yes | | The officer who posted it |
+| `createdAt` / `updatedAt` | Date | auto | | |
+
+Indexes: `{ createdAt: -1 }`, `{ drive: 1, createdAt: -1 }`.
 
 ---
 

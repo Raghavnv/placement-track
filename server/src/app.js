@@ -1,20 +1,36 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const corsOptions = require('./config/cors');
+const authRoutes = require('./routes/authRoutes');
+const driveRoutes = require('./routes/driveRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const announcementRoutes = require('./routes/announcementRoutes');
+const notFound = require('./middleware/notFound');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
-app.use(express.json());
+// Render (and most PaaS) sit behind one proxy; needed for correct client IPs in rate limiting.
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
+app.use(helmet());
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '100kb' }));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// TODO (feature/backend-api): mount routers here, e.g.
-// app.use('/api/auth', authRoutes);
-// app.use('/api/drives', driveRoutes);
-// app.use('/api/applications', applicationRoutes);
-// app.use('/api/admin', adminRoutes);
-// then add the 404 handler and the central error handler (see docs/api-contract.md).
+app.use('/api/auth', authRoutes);
+app.use('/api/drives', driveRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/announcements', announcementRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;

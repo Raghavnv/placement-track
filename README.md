@@ -2,7 +2,7 @@
 
 A full-stack web app for campus placements. Students find company drives they're eligible for, apply in one click, and track each application on a Kanban board. The placement officer posts drives, moves applicants through each round, and follows the season on a stats dashboard.
 
-> **Status:** project scaffold. Features are being built on three feature branches; see [Team](#team) and the [issues](../../issues).
+> **Status:** backend and a complete first version of the frontend are built. Teammates extend the UI on their feature branches; see [Team](#team) and the [issues](../../issues).
 
 ## Features
 
@@ -14,13 +14,15 @@ A full-stack web app for campus placements. Students find company drives they're
 - **Kanban tracker**: Applied → Aptitude Test → Interview → Offer / Rejected, with a stage timeline
 - Private **prep notes** per application
 - **Deadline reminders** for eligible drives not yet applied to, plus upcoming drive dates
-- Mobile-first, accessible UI
+- **Calendar export** (`.ics`): deadlines and drive days appear in Google or Apple Calendar with alerts
+- Mobile-first, accessible UI with **light and dark themes**
 
 ### Admin (Placement Officer)
 - Separate officer login
 - Create, edit, close and delete drives (company, role, package, eligibility, deadline, drive date)
 - Applicants per drive: filter by stage, search, and move applicants through valid stages with remarks
 - Dashboard: students, open drives, applications, students placed, placement rate, package stats, stage and branch breakdowns
+- **Placement funnel**: what share of applications reach aptitude, interview and offer, showing where students drop off
 
 ## Tech stack
 
@@ -42,6 +44,7 @@ A full-stack web app for campus placements. Students find company drives they're
 | [API contract](docs/api-contract.md) | **Every endpoint**: method, path, role, request, response, errors |
 | [UI design](docs/ui-design.md) | Design tokens, wireframes, component states, accessibility checklist |
 | [Postman collection](docs/postman/PlacementTrack.postman_collection.json) | Import into Postman to try the API |
+| [Deployment](docs/deployment.md) | MongoDB Atlas, Render (API) and Vercel (client) step by step |
 
 ## Getting started
 
@@ -60,7 +63,7 @@ cd placement-track
 cd server
 cp .env.example .env          # then edit MONGO_URI and JWT_SECRET
 npm install
-npm run dev                   # http://localhost:5000/api/health -> {"status":"ok"}
+npm run dev                   # http://localhost:5050/api/health -> {"status":"ok"}
 
 # Client (new terminal)
 cd client
@@ -69,15 +72,29 @@ npm install
 npm run dev                   # http://localhost:5173
 ```
 
+Load demo data (wipes your local database): `cd server && npm run seed`. Then log in as:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `officer@college.edu` | `ADMIN_SEED_PASSWORD` from `server/.env` |
+| Student | `asha@college.edu` (or any seeded student) | `Student@123` |
+
 ### Scripts
 
 | Where | Command | Does |
 |---|---|---|
 | server | `npm run dev` | Start API with auto-reload (nodemon) |
 | server | `npm start` | Start API |
-| server | `npm test` | Run Jest + Supertest tests |
-| client | `npm run dev` | Start Vite dev server (proxies `/api` to `:5000`) |
+| server | `npm test` | Run Jest + Supertest tests (in-memory MongoDB, no setup needed) |
+| server | `npm run test:coverage` | Tests with a coverage report |
+| server | `npm run seed` | Reset local DB with demo data |
+| server | `npm run seed:admin` | Create/update only the admin account (safe in production) |
+| client | `npm run dev` | Start Vite dev server (proxies `/api` to `:5050`) |
 | client | `npm run build` | Production build to `client/dist` |
+
+## Deployment
+
+Client on **Vercel**, API on **Render**, database on **MongoDB Atlas**. See [docs/deployment.md](docs/deployment.md).
 
 ## Project structure
 

@@ -1,27 +1,101 @@
-// Placeholder only. feature/admin-ui replaces this with the router, AuthProvider
-// and layout described in docs/architecture.md (section "Client routing").
-const stages = [
-  { key: 'applied', label: 'Applied' },
-  { key: 'aptitude', label: 'Aptitude Test' },
-  { key: 'interview', label: 'Interview' },
-  { key: 'offer', label: 'Offer' },
-  { key: 'rejected', label: 'Rejected' },
-];
+import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
+import ProtectedRoute, { HomeRedirect, PublicOnlyRoute } from './components/layout/ProtectedRoute';
+import AppShell from './components/layout/AppShell';
+import ServerWakeBanner from './components/layout/ServerWakeBanner';
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
+import OnboardingPage from './pages/student/OnboardingPage';
+import AdminLoginPage from './pages/auth/AdminLoginPage';
+import DashboardPage from './pages/student/DashboardPage';
+import DrivesPage from './pages/student/DrivesPage';
+import DriveDetailsPage from './pages/student/DriveDetailsPage';
+import ApplicationsPage from './pages/student/ApplicationsPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import ManageDrivesPage from './pages/admin/ManageDrivesPage';
+import DriveFormPage from './pages/admin/DriveFormPage';
+import ApplicantsPage from './pages/admin/ApplicantsPage';
+import AnnouncementsPage from './pages/admin/AnnouncementsPage';
+import StudentsPage from './pages/admin/StudentsPage';
+import NotFoundPage from './pages/NotFoundPage';
+import RouteError from './pages/RouteError';
+
+function Root() {
+  return (
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <ServerWakeBanner />
+          <Outlet />
+          <ScrollRestoration />
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
+  );
+}
+
+// Route table: docs/architecture.md section 5.1
+const router = createBrowserRouter([
+  {
+    element: <Root />,
+    errorElement: <RouteError />,
+    children: [
+      { index: true, element: <HomeRedirect /> },
+      {
+        element: <PublicOnlyRoute />,
+        children: [
+          { path: '/login', element: <LoginPage /> },
+          { path: '/register', element: <SignupPage /> },
+          { path: '/admin/login', element: <AdminLoginPage /> },
+        ],
+      },
+      {
+        element: <ProtectedRoute role="student" />,
+        children: [
+          { path: '/onboarding', element: <OnboardingPage /> },
+          {
+            element: <AppShell variant="student" />,
+            children: [
+              { path: '/student', element: <DashboardPage /> },
+              { path: '/student/drives', element: <DrivesPage /> },
+              { path: '/student/drives/:id', element: <DriveDetailsPage /> },
+              { path: '/student/applications', element: <ApplicationsPage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <ProtectedRoute role="admin" />,
+        children: [
+          {
+            element: <AppShell variant="admin" />,
+            children: [
+              { path: '/admin', element: <AdminDashboardPage /> },
+              { path: '/admin/drives', element: <ManageDrivesPage /> },
+              { path: '/admin/drives/new', element: <DriveFormPage /> },
+              { path: '/admin/drives/:id/edit', element: <DriveFormPage key="edit" /> },
+              { path: '/admin/drives/:id/applicants', element: <ApplicantsPage /> },
+              { path: '/admin/students', element: <StudentsPage /> },
+              { path: '/admin/announcements', element: <AnnouncementsPage /> },
+            ],
+          },
+        ],
+      },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+], {
+  future: {
+    v7_relativeSplatPath: true,
+    v7_fetcherPersist: true,
+    v7_normalizeFormMethod: true,
+    v7_partialHydration: true,
+    v7_skipActionErrorRevalidation: true,
+  },
+});
 
 export default function App() {
-  return (
-    <main className="container" style={{ paddingBlock: 'var(--space-12)' }}>
-      <p className="eyebrow">Scaffold ready</p>
-      <h1>PlacementTrack</h1>
-      <p className="muted" style={{ maxWidth: '60ch' }}>
-        Campus placement drives and application tracking. The UI is built on the design
-        tokens in <code>src/styles/tokens.css</code>; see <code>docs/ui-design.md</code>.
-      </p>
-      <div className="stage-row">
-        {stages.map((s) => (
-          <span key={s.key} className={`badge badge--${s.key}`}>{s.label}</span>
-        ))}
-      </div>
-    </main>
-  );
+  return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
 }
