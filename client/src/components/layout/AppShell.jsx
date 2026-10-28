@@ -23,6 +23,7 @@ import Logo from '../common/Logo';
 import { UserAvatar } from '../common/Avatar';
 import { IconButton } from '../common/Button';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from './NotificationBell';
 
 const NAV = {
   student: [
@@ -129,6 +130,7 @@ export default function AppShell({ variant }) {
             <Logo size={28} />
           </span>
           <div className="topbar__actions">
+            {variant === 'student' && <NotificationBell />}
             <ThemeToggle />
             {variant === 'student' ? (
               <Link to="/student/profile" className="topbar__avatar topbar__avatar--link" title="My profile">

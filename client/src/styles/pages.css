@@ -679,3 +679,4 @@
   .report *, .report *::before { animation: none !important; transition: none !important; }
   .funnel__bar, .bar-list__bar, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+.notify-setting { display: grid; gap: var(--space-2); }

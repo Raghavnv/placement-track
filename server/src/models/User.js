@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema(
     jobTypes: { type: [{ type: String, enum: JOB_TYPES }], default: undefined },
     expectedPackage: { type: Number, min: 0, max: 200 },
     needsOnboarding: { type: Boolean },
+    emailNotifications: { type: Boolean }, // unset = on; false = in-app notifications only
 
     // Details of the uploaded resume; the file itself is in the Resume collection.
     resume: {

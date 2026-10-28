@@ -251,6 +251,8 @@ For students, list and detail responses also include:
 | 40 | PUT | `/api/interviews/:id/answers/:index` | Student | Save one answer |
 | 41 | POST | `/api/interviews/:id/finish` | Student | Grade the interview and build the report |
 | 42 | GET | `/api/admin/report` | Admin | Season placement report (NIRF / NAAC figures) |
+| 43 | GET | `/api/notifications` | Any | Newest 30 notifications and the unread count |
+| 44 | POST | `/api/notifications/read` | Any | Mark notifications read (some or all) |
 
 ---
 
@@ -580,6 +582,26 @@ Body: `{ "answer": "..." }` (trimmed, max 4000 chars). **200** `{ "index": 0, "a
 
 ### 41. `POST /api/interviews/:id/finish`  (Student, owner only)
 Grades the interview. **200** `{ "interview": Interview }` (completed). Finishing an already graded interview returns it without calling the AI. Errors: `400 NO_ANSWERS`, `404`, and the AI errors from #32.
+
+---
+
+## 3f. Notifications
+
+Created automatically (no endpoint creates them directly) and kept for 90 days:
+
+| Trigger | Who is told | `type` | `link` |
+|---|---|---|---|
+| Officer moves an application (#13) or bulk-moves (#26) | The students moved, with the remark | `stage` | `/student/applications` |
+| Officer posts an announcement (#24) | Exactly the students who can see it (all students, or that drive's applicants at the chosen stages) | `announcement` | the drive, or `/student` |
+| Officer creates a drive (#6) | Students who are eligible (offer policy included) and match it 70% or more | `drive` | the drive |
+
+Students who haven't set `emailNotifications: false` (via #18 `PATCH /api/auth/me`) also get an email through Brevo when `BREVO_API_KEY` and `EMAIL_FROM` are set. Emails go out in the background; a failed email or notification never fails the officer's request.
+
+### 43. `GET /api/notifications`
+**200** `{ "data": [{ "_id", "type", "title", "body", "link", "readAt": null, "createdAt" }], "unreadCount": 3 }`, newest first, at most 30.
+
+### 44. `POST /api/notifications/read`
+Body: `{ "ids": ["..."] }` to mark those, or `{}` to mark all. **200** `{ "marked": 3 }`. Only the caller's own notifications change. Errors: `400 VALIDATION_ERROR`.
 
 ---
 
@@ -918,6 +940,7 @@ Errors: `400 INVALID_ID`, `404 NOT_FOUND` (unknown id or not a student), `401`, 
 | Date | Change | By |
 |---|---|---|
 | 2026-10-27 | Initial contract | Raghav |
+| 2026-10-28 | Notifications: new #43-44, `User.emailNotifications` | Raghav |
 | 2026-10-28 | Placement report: new #42 | Raghav |
 | 2026-10-28 | Placement policy: drive `tier`, policy eligibility check, new #34-36; mock interviews: new #37-41, `NO_ANSWERS`, `INTERVIEW_COMPLETED` | Raghav |
 | 2026-10-28 | Resume Coach (Groq): new #31-33 `/api/coach/*`, `NO_RESUME`, `RESUME_NOT_PDF`, `RESUME_UNREADABLE`, `AI_BUSY`, `AI_PROVIDER_ERROR`, `AI_NOT_CONFIGURED` | Raghav |

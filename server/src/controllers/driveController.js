@@ -2,7 +2,9 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { checkEligibility, eligibilityFilter } = require('../utils/eligibility');
 const { computeMatch } = require('../utils/matching');
-const { getPolicy, placementFor, tierOf } = require('../utils/placement');
+const { getPolicy, placementFor, placementsFor, tierOf } = require('../utils/placement');
+const { notify } = require('../utils/notify');
+const { formatDeadline } = require('../utils/format');
 const { emptyStageCounts } = require('../utils/stages');
 const { containsRegex, paginationMeta } = require('../utils/query');
 const { DRIVE_SUMMARY_FIELDS } = require('../utils/constants');
@@ -94,8 +96,27 @@ exports.getDrive = asyncHandler(async (req, res) => {
   res.json({ drive: decorated });
 });
 
+// Students told about a new drive: eligible (offer policy included) and at least this good a match.
+const NEW_DRIVE_MIN_MATCH = 70;
+const MATCH_FIELDS = 'cgpa backlogs branch graduationYear skills interests preferredRoles preferredLocations jobTypes expectedPackage';
+
+async function notifyMatchingStudents(drive) {
+  const students = await User.find({ role: 'student' }).select(MATCH_FIELDS).lean();
+  const placements = await placementsFor(students.map((s) => s._id));
+  const matching = students.filter(
+    (s) => checkEligibility(s, drive, placements.get(s._id.toString())).eligible && computeMatch(s, drive).score >= NEW_DRIVE_MIN_MATCH,
+  );
+  await notify(matching.map((s) => s._id), {
+    type: 'drive',
+    title: `New drive that fits you: ${drive.role} at ${drive.companyName}`,
+    body: `₹${drive.package} LPA${drive.location ? ` · ${drive.location}` : ''}. Apply by ${formatDeadline(drive.deadline)}.`,
+    link: `/student/drives/${drive._id}`,
+  });
+}
+
 exports.createDrive = asyncHandler(async (req, res) => {
   const drive = await Drive.create({ ...req.body, status: 'open', createdBy: req.user._id });
+  await notifyMatchingStudents(drive.toObject());
   const [decorated] = await decorate([drive.toJSON()], req.user);
   res.status(201).json({ drive: decorated });
 });
